@@ -31,7 +31,7 @@ Parameters:
 `-g <genome.fa>` must be provided in fasta format. It should have sequences which include interval sequences. E.g. a whole human genome. 'sequences' colunm will be extracted automatically
 
 
-The comparison of seuqences is performed only inside one gene, that is why PrePh needs to know gene coordinates
+The comparison of seuqences is performed only inside one gene, that is why PrePh needs to know gene coordinates. All sequences in one gene will be compared in a pairwise manner to find complementary regions between them
 
 **if colums gene_start and gene_end are absent:**
 but `-n <annotation>` is provided, the genes will be outomatically identified from the genome annotation.
