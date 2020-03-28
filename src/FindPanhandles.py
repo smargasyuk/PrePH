@@ -219,7 +219,7 @@ def MakePretty(path_to_ph, annotation_file):
     df.sort_values(by=["chr", "panhandle_start", "panhandle_left_hand",
                                "panhandle_right_hand", "panhandle_end"], inplace=True)
     df["id"] = range(1, df.shape[0] + 1)
-    df.to_csv("../out/panhandles_preprocessed.tsv", sep="\t", index=False)
+    df.to_csv(path_to_ph + '_preprocessed', sep="\t", index=False)
 
 def main(argv):
     #path_to_intervals = '../out/intervals_with_seqs.tsv'
@@ -276,9 +276,10 @@ def main(argv):
             strandness = bool(arg)
         elif opt in ("-n", "--annotation"):
             annotation_file = arg
-        elif opt in ("-0", "--out"):
+        elif opt in ("-o", "--out"):
             path_to_ph = arg
     kmers_stacking_matrix = load("../lib/" + str(k) + str(GT_threshold) + "mers_stacking_energy_binary.npy")
+
     Find_panhandles(path_to_intervals, energy_threshold, handle_length_threshold,
                     panhandle_length_threshold, k,
                     genome_file, threads, need_suboptimal, kmers_stacking_matrix, strandness, annotation_file, path_to_ph)
