@@ -32,6 +32,7 @@ Parameters:
 
 
 The comparison of seuqences is performed only inside one gene, that is why PrePh needs to know gene coordinates
+
 **if colums gene_start and gene_end are absent:**
 but `-n <annotation>` is provided, the genes will be outomatically identified from the genome annotation.
 If `-n <annotation>` is also absent, PrePH assumes that all the sequences belong to one gene and will create artificial coordinates for the gene.   
