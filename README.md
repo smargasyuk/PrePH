@@ -3,6 +3,8 @@ Predict PanHandles
 
 Find Pairs of Complementary regions 
 
+Python version = 2.7
+
 All scripts should be run from PrePH/src directory
 
 ## Step 0 - Precalculates stacking energies matrix for kmers
