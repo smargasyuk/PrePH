@@ -3,13 +3,14 @@ from numpy import argmin, unravel_index, full, empty, load, set_printoptions, ar
 from math import ceil
 import re, sys, getopt, itertools, binascii, time, subprocess
 from functools import partial
-sys.path.append('../../../tools/')
+#sys.path.append('../../../tools/')
 from pyfaidx import Fasta
 import pandas as pd
 import multiprocessing as mp
-sys.path.insert(0, './')
-from fold_new_no_intersection import * 
 from Bio.Seq import Seq
+sys.path.insert(0, './')
+from fold import * 
+
 
 inf = float('inf')
 
@@ -24,8 +25,8 @@ def MakeComplement(row):
         return(row['sequences'])
 
 def Find_panhandles_one_gene(lock, df, energy_threshold, handle_length_threshold, panhandle_length_threshold, k,
-                             need_suboptimal, kmers_stacking_matrix, gene):
-    with open('../out/genes_done.txt', 'a') as done_f:
+                             need_suboptimal, kmers_stacking_matrix, path_to_ph, gene):
+    with open('../data/genes_done.txt', 'a') as done_f:
         with lock:
             done_f.write(str(gene) + '\n')
     print('Working with gene ' + gene)
@@ -56,14 +57,14 @@ def Find_panhandles_one_gene(lock, df, energy_threshold, handle_length_threshold
                  'start_al1': alignment[1], 'end_al1': alignment[2],
                  'start_al2': alignment[3], 'end_al2': alignment[4],
                  'alignment1': alignment[5], 'alignment2': alignment[6], 'structure': alignment[7]}, ignore_index=True)
-    with open('../out/panhandles.tsv', 'a') as f:
+    with open(path_to_ph, 'a') as f:
         with lock:
             results_one_gene_table.to_csv(f, sep='\t', index=False, header=False)
 
 
 
 def Find_panhandles(path_to_intervals, energy_threshold, handle_length_threshold, panhandle_length_threshold, k,
-                    genome_file, threads, need_suboptimal, kmers_stacking_matrix, strandness, annotation_file):
+                    genome_file, threads, need_suboptimal, kmers_stacking_matrix, strandness, annotation_file, path_to_ph):
     start_time = time.time()
     df = pd.read_csv(path_to_intervals, sep='\t')
     if 'sequences' in list(df.columns.values):
@@ -128,13 +129,13 @@ def Find_panhandles(path_to_intervals, energy_threshold, handle_length_threshold
     
     # Create headers for out files
     print("Creating files..")
-    with open('../out/genes_done.txt', 'w') as done_f:
+    with open('../data/genes_done.txt', 'w') as done_f:
         done_f.write('Started alignment: \n')
     results_one_gene_table = pd.DataFrame(
         {'gene': [], 'energy': [],
          'start_al1': [], 'end_al1': [], 'start_al2': [], 'end_al2': [],
          'alignment1': [], 'alignment2': [], 'structure': [], 'interval1': [], 'interval2': []})
-    with open('../out/panhandles.tsv', 'w') as f:
+    with open(path_to_ph, 'w') as f:
         results_one_gene_table.to_csv(f, sep='\t', index=False, header=True)
     
     # Look for phs in parallel threads
@@ -143,7 +144,7 @@ def Find_panhandles(path_to_intervals, energy_threshold, handle_length_threshold
     m = mp.Manager()
     lock = m.Lock() # Allows multiple threads write into one file
     Find_panhandles_one_gene2 = partial(Find_panhandles_one_gene, lock, df, energy_threshold, handle_length_threshold,
-                                        panhandle_length_threshold, k, need_suboptimal, kmers_stacking_matrix)
+                                        panhandle_length_threshold, k, need_suboptimal, kmers_stacking_matrix, path_to_ph)
     genes = df["gene_chr_start_end_strand"].unique()
     p.map(Find_panhandles_one_gene2, genes)
     p.close()
@@ -237,19 +238,21 @@ def main(argv):
     path_to_ph = "../out/panhandles.tsv"
 
     try:
-        opts, args = getopt.getopt(argv, "h:i:g:k:p:a:t:e:u:d:s:n:",
+        opts, args = getopt.getopt(argv, "h:i:g:k:p:a:t:e:u:d:s:n:o:",
                                    ["help=", "intervals=", "genome=", "k=", "panh_len_max", "handle_len_min", "threads",
-                                    "energy_max", "need_subopt", "gt_threshold", "strand", "annotation"])
+                                    "energy_max", "need_subopt", "gt_threshold", "strand", "annotation", "out"])
     except getopt.GetoptError:
         print(
             'FindPanhandles.py -i <intervals_df> -g <genome.fa> -k <kmer_length> -p <panhandle_len_max> ' +
-            '-a <handle_len_min> -t <threads> -e <energy_max> -u <need_suboptimal> -d <gt_threshold> -s <strand> -n <annotation>')
+            '-a <handle_len_min> -t <threads> -e <energy_max> -u <need_suboptimal> -d <gt_threshold> -s <strand>' +
+            '-n <annotation> -o <out>')
         sys.exit(2)
     for opt, arg in opts:
         if opt in ('-h', '--help'):
             print(
                 'FindPanhandles.py -i <intervals_df> -g <genome.fa> -k <kmer_length> -p <panhandle_len_max> ' +
-                '-a <handle_len_min> -t <threads> -e <energy_max> -u <need_suboptimal> -d <gt_threshold> -s <strand> -n <annotation>')
+                '-a <handle_len_min> -t <threads> -e <energy_max> -u <need_suboptimal> -d <gt_threshold> -s <strand>' +
+                '-n <annotation> -o <out>')
             sys.exit()
         elif opt in ("-i", "--intervals"):
             path_to_intervals = arg
@@ -273,10 +276,12 @@ def main(argv):
             strandness = bool(arg)
         elif opt in ("-n", "--annotation"):
             annotation_file = arg
+        elif opt in ("-0", "--out"):
+            path_to_ph = arg
     kmers_stacking_matrix = load("../lib/" + str(k) + str(GT_threshold) + "mers_stacking_energy_binary.npy")
     Find_panhandles(path_to_intervals, energy_threshold, handle_length_threshold,
                     panhandle_length_threshold, k,
-                    genome_file, threads, need_suboptimal, kmers_stacking_matrix, strandness, annotation_file)
+                    genome_file, threads, need_suboptimal, kmers_stacking_matrix, strandness, annotation_file, path_to_ph)
     MakePretty(path_to_ph, annotation_file)
 
 
