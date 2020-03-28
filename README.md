@@ -19,6 +19,7 @@ Run `FindPanhandles.py -i <intervals_df> -g <genome.fa> -k <kmer_lentgh> -p <pan
 Parameters:
 - -i <intervals_df> - an input file of intervals in bed 6 format (with possible additional 3 columns)  - tab-separated file with header like this:
 **The header is compulsory!**
+
 | chrom | chromStart | chromEnd | name | score | strand | sequences | gene_start | gene_end |
 | :---: |   :---:    |  :---: |  :---: |  :---: |  :---: |  :---: |  :---: |  :---: |
 |chr1  |136219| 136233| 1 | 1 | + | GGCTTTGATAAAAA |  135223 |  138932 |
