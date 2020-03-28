@@ -13,8 +13,8 @@ Parameters:
 - -k <kmer_length> - is a minimal length of consicutive stacked nt pairs. Must be the same as used for `./FindPanhandles.py` Recommended k = 5
 - -g <gt_amount_in_kmer_max> - maximal number of GT pairs in kmer. Recommended for k = 5 is g = 2
 
-## Step 1 - Predicts panhandles with handles in the intervals
-Run `FindPanhandles.py -i <intervals_df> -g <genome.fa> -k <kmer_lentgh> -p <panhandle_len_max>  -a <handle_len_min> -t <threads> -e <energy_max> -s <have_seqs_in_input_df> -u <need_suboptimal>`
+## Step 1 - Predicts panhandles with handles in the intervals 
+Run `./FindPanhandles.py -i <intervals_df> -g <genome.fa> -k <kmer_lentgh> -p <panhandle_len_max>  -a <handle_len_min> -t <threads> -e <energy_max> -u <need_suboptimal> -o <out> -n <annotation> -s <strandness>  -d <gt_amount_in_kmer_max>`
 
 Parameters:
 - -i <intervals_df> - an input file of intervals in bed 6 format (with possible additional 3 columns)  - tab-separated file with header like this:
@@ -50,3 +50,10 @@ If `-n <annotation>` is also absent, PrePH assumes that all the sequences belong
 - -o <out> - path to output file 
   
 The final output will be stored in file called \<out>_preprocessed
+
+
+## Test example
+To test the scripts run:
+`./PrecalculateStackingEnergeis.py -k 5 -g 2` 
+`./FindPanhandles.py -i ../data/ATE1_zebra_fish_example.bed -k 5 -p 10000  -a 10 -t 5 -e -15 -u True -d 2 -s True`
+
