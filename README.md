@@ -49,4 +49,4 @@ If `-n <annotation>` is also absent, PrePH assumes that all the sequences belong
 - -n <annotation> - genome annotation in gtf or gff format
 - -o <out> - path to output file 
   
-The final output will be stored in file called <out>_preprocessed
+The final output will be stored in file called \<out>_preprocessed
