@@ -59,5 +59,5 @@ To test the scripts run:
 
 `./PrecalculateStackingEnergeis.py -k 5 -g 2` 
 
-`./FindPanhandles.py -i ../data/ATE1_zebra_fish_example.bed -k 5 -p 10000  -a 10 -t 5 -e -15 -u True -d 2 -s True`
+`./FindPanhandles.py -i ../data/exammple.bed -k 5 -p 10000 -a 10 -t 5 -e -15 -u True -d 2 -s True -o output`
 
