@@ -19,12 +19,12 @@ Run `FindPanhandles.py -i <intervals_df> -g <genome.fa> -k <kmer_lentgh> -p <pan
 Parameters:
 - -i <intervals_df> - an input file of intervals in bed 6 format (with possible additional 3 columns)  - tab-separated file with header like this:
 **The header is compulsory!**
-
-chrom chromStart  chromEnd  name  score strand  sequences gene_start  gene_end
-chr1  136219  136233  1 1 + GGCTTTGATAAAAA  135223  138932  
-chr1  230  243  2 1 - TTTTTATAAAGCC 105 310 
-chr1  136330  136343  3 1 + GGCCAGCAGATGG 135223  138932
-chr1  1005 1028   4 1 - TGACAAACCACAGGACACTACAC 105 310  
+| chrom | chromStart | chromEnd | name | score | strand | sequences | gene_start | gene_end |
+| :---: |   :---:    |  :---: |  :---: |  :---: |  :---: |  :---: |  :---: |  :---: |
+|chr1  |136219| 136233| 1 | 1 | + | GGCTTTGATAAAAA |  135223 |  138932 |
+|chr1 | 230 | 243 | 2 | 1 | - | TTTTTATAAAGCC | 105 | 310 | 
+|chr1 | 136330 | 136343 | 3 | 1 | + | GGCCAGCAGATGG | 135223 | 138932 |
+|chr1 | 1005 | 1028  | 4 | 1 | - | TGACAAACCACAGGACACTACAC | 105 | 310 | 
 
 **if column 'sequences' is absent:**
 `-g <genome.fa>` must be provided in fasta format. It should have sequences which include interval sequences. E.g. a whole human genome. 'sequences' colunm will be extracted automatically
