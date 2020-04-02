@@ -1,0 +1,3 @@
+Started alignment: 
+chr1_1_4640972_+
+chr1_1_4640972_-

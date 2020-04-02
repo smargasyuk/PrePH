@@ -3,7 +3,7 @@ from numpy import argmin, unravel_index, full, empty, load, set_printoptions, ar
 from math import ceil
 import re, sys, getopt, itertools, binascii, time, subprocess
 from functools import partial
-#sys.path.append('../../../tools/')
+sys.path.append('../../tools/')
 from pyfaidx import Fasta
 import pandas as pd
 import multiprocessing as mp
@@ -121,8 +121,13 @@ def Find_panhandles(path_to_intervals, energy_threshold, handle_length_threshold
             print("Making complement of minus strand..")
             df.loc[:, 'sequences'] = df.apply(MakeComplement, axis=1) 
         df.to_csv("../out/intervals_with_seqs.tsv", sep='\t', index=False)
+    
+    # Check sequences are all upper case    
     df.sequences = map(lambda x: x.upper(), df['sequences'])
     
+    # Check sequences are all from DNA, not RNA
+    df.sequences = df.sequences.replace("U", "T", regex=True) 
+
     # Index sequences
     df["sequences_indxd"] = df['sequences'].apply(lambda x: Index_seq(x, k))
     df = df.loc[df.sequences_indxd != False]
