@@ -3,7 +3,7 @@ from numpy import argmin, unravel_index, full, empty, load, set_printoptions, ar
 from math import ceil
 import re, sys, getopt, itertools, binascii, time, subprocess
 from functools import partial
-sys.path.append('../../tools/')
+#sys.path.append('../../tools/')
 from pyfaidx import Fasta
 import pandas as pd
 import multiprocessing as mp
