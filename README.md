@@ -54,10 +54,23 @@ If `-n <annotation>` is also absent, PrePH assumes that all the sequences belong
 The final output will be stored in file called \<out>_preprocessed
 
 
-## Test example
+### Test example
 To test the scripts run:
 
 `./PrecalculateStackingEnergeis.py -k 5 -g 2` 
 
 `./FindPanhandles.py -i ../data/exammple.bed -k 5 -p 10000 -a 10 -t 5 -e -15 -u True -d 2 -s True -o output`
+
+## Find PCCR in two sequences
+Run `./fold.py -f <first_seq> -s <second_seq> -k <kmer_lentgh> -a <handle_len_min> -e <energy_max> -u <need_subopt> -d <gt_threshold>`
+
+Parameters are the same as above, except:
+
+- -f first DNA sequence
+- -s second DNA sequence
+
+### Example
+`./fold.py -f AAAGGGC -s AAAGCCCAAAAAA -k 3 -a 3 -e -1 -u True -d 2`
+
+
 
