@@ -330,17 +330,17 @@ def main(argv):
     need_suboptimal = True
     GT_threshold = 2
     try:
-        opts, args = getopt.getopt(argv, "h:f:s:k:a:e:u:d",
+        opts, args = getopt.getopt(argv, "h:f:s:k:a:e:u:d:",
                                    ["help=", "first_seq=", "second_seq=", "k=", "handle_len_min", "energy_max",
                                     "need_subopt", "gt_threshold"])
     except getopt.GetoptError:
         print(
-            'fold.py -f <first_seq> -s <second_seq> -k <kmer_lentgh> -a <handle_len_min> -e <energy_max> -u <need_subopt> -g <gt_threshold>')
+            'fold.py -f <first_seq> -s <second_seq> -k <kmer_lentgh> -a <handle_len_min> -e <energy_max> -u <need_subopt> -d <gt_threshold>')
         sys.exit(2)
     for opt, arg in opts:
         if opt in ('-h', '--help'):
             print(
-                'fold.py -f <first_seq> -s <second_seq> -k <kmer_lentgh> -a <handle_len_min> -e <energy_max> -u <need_subopt> -g <gt_threshold>')
+                'fold.py -f <first_seq> -s <second_seq> -k <kmer_lentgh> -a <handle_len_min> -e <energy_max> -u <need_subopt> -d <gt_threshold>')
             sys.exit()
         elif opt in ("-f", "--first_seq"):
             seq = arg
@@ -356,7 +356,7 @@ def main(argv):
             need_suboptimal = bool(arg)
         elif opt in ("-d", "--gt_threshold"):
             GT_threshold = int(arg)
-
+    print(1)
     kmers_stacking_matrix = load("../lib/" + str(k) + str(GT_threshold) + "mers_stacking_energy_binary.npy")
     seq_indxd = Index_seq(seq, k)
     seq_compl_indxd = Index_seq(seq_compl, k)
