@@ -26,7 +26,7 @@ def MakeComplement(row):
 
 def Find_panhandles_one_gene(lock, df, energy_threshold, handle_length_threshold, panhandle_length_threshold, k,
                              need_suboptimal, kmers_stacking_matrix, path_to_ph, gene):
-    with open('../data/genes_done.txt', 'a') as done_f:
+    with open(path_to_ph + '_progress', 'a') as done_f:
         with lock:
             done_f.write(str(gene) + '\n')
     print('Working with gene ' + gene)
@@ -61,10 +61,42 @@ def Find_panhandles_one_gene(lock, df, energy_threshold, handle_length_threshold
         with lock:
             results_one_gene_table.to_csv(f, sep='\t', index=False, header=False)
 
-
+def Find_panhandles_one_row(lock, df, energy_threshold, handle_length_threshold, k,
+                             need_suboptimal, kmers_stacking_matrix, path_to_ph, row):
+    with open(path_to_ph + '_progress', 'a') as done_f:
+        with lock:
+            done_f.write(str(row) + '\n')
+    print('Working with row ' + str(row))
+    results_one_row = []
+    results_one_row_table = pd.DataFrame(
+        {'row': [], 'energy': [],
+         'start_al1': [], 'end_al1': [], 'start_al2': [], 'end_al2': [],
+         'alignment1': [], 'alignment2': [], 'structure': [], 'interval1': [], 'interval2': []})
+    
+    seq1 = df.loc[0, 'sequences'][:]
+    seq1_indxd = df.loc[0, 'sequences_indxd'][:]
+    seq2 = df.loc[row, 'sequences'][:]
+    seq2_indxd = df.loc[row, 'sequences_indxd'][:]
+    align = FindMinEnLocAlkmer(seq1, seq2, seq1_indxd, seq2_indxd, k, energy_threshold,
+        handle_length_threshold, need_suboptimal, kmers_stacking_matrix)
+    if align != 0:
+        results_one_row.append([align, df.loc[0, 'interval_chr_start_end_strand'],
+            df.loc[row, 'interval_chr_start_end_strand']])
+    for result in results_one_row:
+        for alignment in result[0]:
+            results_one_row_table = results_one_row_table.append(
+                {'row': row, 'energy': alignment[0], 'interval1': result[1], 'interval2': result[2],
+                 'start_al1': alignment[1], 'end_al1': alignment[2],
+                 'start_al2': alignment[3], 'end_al2': alignment[4],
+                 'alignment1': alignment[5], 'alignment2': alignment[6], 'structure': alignment[7]}, ignore_index=True)
+    with open(path_to_ph, 'a') as f:
+        with lock:
+            results_one_row_table.to_csv(f, sep='\t', index=False, header=False)
+    
 
 def Find_panhandles(path_to_intervals, energy_threshold, handle_length_threshold, panhandle_length_threshold, k,
-                    genome_file, threads, need_suboptimal, kmers_stacking_matrix, strandness, annotation_file, path_to_ph):
+                    genome_file, threads, need_suboptimal, kmers_stacking_matrix, strandness, annotation_file, 
+                    path_to_ph, first_to_all):
     start_time = time.time()
     df = pd.read_csv(path_to_intervals, sep='\t')
     if 'sequences' in list(df.columns.values):
@@ -107,10 +139,6 @@ def Find_panhandles(path_to_intervals, energy_threshold, handle_length_threshold
     df['start_gene'] = df['start_gene'].astype(int)
     df['end_gene'] = df['end_gene'].astype(int)
     
-    # Order intervals
-    df.sort_values(by=['gene_chr_start_end_strand', 'chromStart', 'chromEnd'], inplace=True)
-    df.reset_index(inplace = True)
-    
     # Attach sequences from the genome
     if not ('sequences' in list(df.columns.values)):
         print('Attaching sequences..')
@@ -132,28 +160,54 @@ def Find_panhandles(path_to_intervals, energy_threshold, handle_length_threshold
     df["sequences_indxd"] = df['sequences'].apply(lambda x: Index_seq(x, k))
     df = df.loc[df.sequences_indxd != False]
     
-    # Create headers for out files
-    print("Creating files..")
-    with open('../data/genes_done.txt', 'w') as done_f:
-        done_f.write('Started alignment: \n')
-    results_one_gene_table = pd.DataFrame(
-        {'gene': [], 'energy': [],
-         'start_al1': [], 'end_al1': [], 'start_al2': [], 'end_al2': [],
-         'alignment1': [], 'alignment2': [], 'structure': [], 'interval1': [], 'interval2': []})
-    with open(path_to_ph, 'w') as f:
-        results_one_gene_table.to_csv(f, sep='\t', index=False, header=True)
-    
     # Look for phs in parallel threads
-    print('Start to align..')
-    p = mp.Pool(processes=threads)
-    m = mp.Manager()
-    lock = m.Lock() # Allows multiple threads write into one file
-    Find_panhandles_one_gene2 = partial(Find_panhandles_one_gene, lock, df, energy_threshold, handle_length_threshold,
-                                        panhandle_length_threshold, k, need_suboptimal, kmers_stacking_matrix, path_to_ph)
-    genes = df["gene_chr_start_end_strand"].unique()
-    p.map(Find_panhandles_one_gene2, genes)
-    p.close()
-    p.join()
+    if first_to_all == False:
+        # Create headers for out files
+        print("Creating files..")
+        with open(path_to_ph + '_progress', 'w') as done_f:
+            done_f.write('Started alignment: \n')
+        results_one_gene_table = pd.DataFrame(
+            {'gene': [], 'energy': [],
+             'start_al1': [], 'end_al1': [], 'start_al2': [], 'end_al2': [],
+             'alignment1': [], 'alignment2': [], 'structure': [], 'interval1': [], 'interval2': []})
+        with open(path_to_ph, 'w') as f:
+            results_one_gene_table.to_csv(f, sep='\t', index=False, header=True)
+        # Order intervals
+        df.sort_values(by=['gene_chr_start_end_strand', 'chromStart', 'chromEnd'], inplace=True)
+        df.reset_index(inplace = True)
+        # Work
+        print('Start to align..') 
+        p = mp.Pool(processes=threads)
+        m = mp.Manager()
+        lock = m.Lock() # Allows multiple threads write into one file
+        Find_panhandles_one_gene2 = partial(Find_panhandles_one_gene, lock, df, energy_threshold, handle_length_threshold,
+                                            panhandle_length_threshold, k, need_suboptimal, kmers_stacking_matrix, path_to_ph)
+        genes = df["gene_chr_start_end_strand"].unique()
+        p.map(Find_panhandles_one_gene2, genes)
+        p.close()
+        p.join()
+    elif first_to_all == True:
+        print('I will compare only the first sequence to all the others!')
+        print("Creating files..")
+        with open(path_to_ph + '_progress', 'w') as done_f:
+            done_f.write('Started alignment: \n')
+        results_one_row_table = pd.DataFrame(
+            {'row': [], 'energy': [],
+             'start_al1': [], 'end_al1': [], 'start_al2': [], 'end_al2': [],
+             'alignment1': [], 'alignment2': [], 'structure': [], 'interval1': [], 'interval2': []})
+        with open(path_to_ph, 'w') as f:
+            results_one_row_table.to_csv(f, sep='\t', index=False, header=True)
+        # Work
+        print('Start to align..') 
+        p = mp.Pool(processes=threads)
+        m = mp.Manager()
+        lock = m.Lock() # Allows multiple threads write into one file
+        Find_panhandles_one_row2 = partial(Find_panhandles_one_row, lock, df, energy_threshold, handle_length_threshold, k,
+            need_suboptimal, kmers_stacking_matrix, path_to_ph)
+        rows = range(1, df.shape[0])
+        p.map(Find_panhandles_one_row2, rows)
+        p.close()
+        p.join()
     print("all done!")
     print(time.time() - start_time)
     return (0)
@@ -161,9 +215,10 @@ def Find_panhandles(path_to_intervals, energy_threshold, handle_length_threshold
 def MakePretty(path_to_ph, annotation_file):
     df = pd.read_csv(path_to_ph, sep="\t")
     # Divide columns
-    df[["start_gene", "end_gene"]] = df.gene.str.split('_', expand=True)[[1,2]].astype(int)
-    df[["strand"]] = df.gene.str.split('_', expand=True)[[3]]
-    df[["chr"]] = df.gene.str.split('_', expand=True)[[0]]
+    if  'gene' in list(df.columns.values):
+        df[["start_gene", "end_gene"]] = df.gene.str.split('_', expand=True)[[1,2]].astype(int)
+    df[["strand"]] = df.interval1.str.split('_', expand=True)[[3]]
+    df[["chr"]] = df.interval1.str.split('_', expand=True)[[0]]
     df[["interval1_start", "interval1_end"]] = df.interval1.str.split('_', expand=True)[[1,2]].astype(int)
     df[["interval2_start", "interval2_end"]] = df.interval2.str.split('_', expand=True)[[1,2]].astype(int)
 
@@ -181,10 +236,12 @@ def MakePretty(path_to_ph, annotation_file):
     df = df.loc[df.panhandle_start < df.panhandle_right_hand]
     df = df.loc[df.panhandle_left_hand < df.panhandle_right_hand]
     df.drop(['interval1', 'interval2','start_al1','end_al1','start_al2','end_al2',
-             'interval1_start','interval2_start', 'interval1_end','interval2_end', 'gene'], axis=1, inplace=True)
+             'interval1_start','interval2_start', 'interval1_end','interval2_end'], axis=1, inplace=True)
+    if  'gene' in list(df.columns.values):
+        df.drop(['gene'], axis=1, inplace=True)
 
     # Add gene ids and names from annotation
-    if annotation_file != '':
+    if ((annotation_file != '') & ('gene' in list(df.columns.values))):
         print('Adding gene ids and names from annotation..')
         cmd = 'awk -F"\t" \'{ if ($3 == "gene") { print } }\' ' + annotation_file
         a = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
@@ -241,22 +298,23 @@ def main(argv):
     strandness = True
     annotation_file = ''
     path_to_ph = "../out/panhandles.tsv"
+    first_to_all = False
 
     try:
-        opts, args = getopt.getopt(argv, "h:i:g:k:p:a:t:e:u:d:s:n:o:",
+        opts, args = getopt.getopt(argv, "h:i:g:k:p:a:t:e:u:d:s:n:o:r:",
                                    ["help=", "intervals=", "genome=", "k=", "panh_len_max", "handle_len_min", "threads",
-                                    "energy_max", "need_subopt", "gt_threshold", "strand", "annotation", "out"])
+                                    "energy_max", "need_subopt", "gt_threshold", "strand", "annotation", "out", "first_to_all"])
     except getopt.GetoptError:
         print(
             'FindPanhandles.py -i <intervals_df> -g <genome.fa> -k <kmer_length> -p <panhandle_len_max> ' +
-            '-a <handle_len_min> -t <threads> -e <energy_max> -u <need_suboptimal> -d <gt_threshold> -s <strand>' +
+            '-a <handle_len_min> -t <threads> -e <energy_max> -u <need_suboptimal> -d <gt_threshold> -s <strand> -r <first_to_all>' +
             '-n <annotation> -o <out>')
         sys.exit(2)
     for opt, arg in opts:
         if opt in ('-h', '--help'):
             print(
                 'FindPanhandles.py -i <intervals_df> -g <genome.fa> -k <kmer_length> -p <panhandle_len_max> ' +
-                '-a <handle_len_min> -t <threads> -e <energy_max> -u <need_suboptimal> -d <gt_threshold> -s <strand>' +
+                '-a <handle_len_min> -t <threads> -e <energy_max> -u <need_suboptimal> -d <gt_threshold> -s <strand> -r <first_to_all>' +
                 '-n <annotation> -o <out>')
             sys.exit()
         elif opt in ("-i", "--intervals"):
@@ -274,20 +332,38 @@ def main(argv):
         elif opt in ("-e", "--energy_max"):
             energy_threshold = float(arg)
         elif opt in ("-u", "--need_subopt"):
-            need_suboptimal = bool(arg)
+            need_suboptimal = arg
         elif opt in ("-d", "--gt_threshold"):
             GT_threshold = int(arg)
         elif opt in ("-s", "--strand"):
-            strandness = bool(arg)
+            strandness = arg
         elif opt in ("-n", "--annotation"):
             annotation_file = arg
         elif opt in ("-o", "--out"):
             path_to_ph = arg
+        elif opt in ("-r", "--first_to_all"):
+            first_to_all = arg    
+    if first_to_all == 'False':
+        first_to_all = False
+    elif first_to_all == 'True':
+        first_to_all = True
+    if need_suboptimal == 'False':
+        need_suboptimal = False
+    elif need_suboptimal == 'True':
+        need_suboptimal = True
+    if strandness == 'False':
+        strandness = False
+    elif strandness == 'True':
+        strandness = True
+
     kmers_stacking_matrix = load("../lib/" + str(k) + str(GT_threshold) + "mers_stacking_energy_binary.npy")
 
     Find_panhandles(path_to_intervals, energy_threshold, handle_length_threshold,
                     panhandle_length_threshold, k,
-                    genome_file, threads, need_suboptimal, kmers_stacking_matrix, strandness, annotation_file, path_to_ph)
+                    genome_file, threads, need_suboptimal, 
+                    kmers_stacking_matrix, strandness, 
+                    annotation_file, path_to_ph,
+                    first_to_all)
     MakePretty(path_to_ph, annotation_file)
 
 

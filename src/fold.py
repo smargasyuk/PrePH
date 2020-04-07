@@ -356,7 +356,6 @@ def main(argv):
             need_suboptimal = bool(arg)
         elif opt in ("-d", "--gt_threshold"):
             GT_threshold = int(arg)
-    print(1)
     kmers_stacking_matrix = load("../lib/" + str(k) + str(GT_threshold) + "mers_stacking_energy_binary.npy")
     seq_indxd = Index_seq(seq, k)
     seq_compl_indxd = Index_seq(seq_compl, k)

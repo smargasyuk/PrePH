@@ -1,1 +1,1 @@
-The intermediate output data files are stored here
+The example data is stored here
