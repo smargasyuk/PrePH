@@ -25,11 +25,11 @@ def main(argv):
         opts, args = getopt.getopt(argv, "i:o:s:v:",
                                    ["help=", "input=", "output=", "size=", "overlap="])
     except getopt.GetoptError:
-        print('FindPanhandles.py -i <input.fa> -o <output.bed> -s <size> -v <overlap>')
+        print('MakeBedForVirusGenome.py -i <input.fa> -o <output.bed> -s <size> -v <overlap>')
         sys.exit(2)
     for opt, arg in opts:
         if opt in ('-h', '--help'):
-            print('FindPanhandles.py -i <input.fa> -o <output.bed> -s <size> -v <overlap>')
+            print('MakeBedForVirusGenome.py -i <input.fa> -o <output.bed> -s <size> -v <overlap>')
             sys.exit()
         elif opt in ("-i", "--input"):
             path_to_input = arg
