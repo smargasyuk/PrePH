@@ -16,7 +16,7 @@ Parameters:
 - -g <gt_amount_in_kmer_max> - maximal number of GT pairs in kmer. Recommended for k = 5 is g = 2
 
 ## Step 1 - Predicts panhandles with handles in the intervals 
-Run `./FindPanhandles.py -i <intervals_df> -g <genome.fa> -k <kmer_lentgh> -p <panhandle_len_max>  -a <handle_len_min> -t <threads> -e <energy_max> -u <need_suboptimal> -o <out> -n <annotation> -s <strandness>  -d <gt_amount_in_kmer_max>`
+Run `./FindPanhandles.py -i <intervals_df> -g <genome.fa> -k <kmer_lentgh> -p <panhandle_len_max>  -a <handle_len_min> -t <threads> -e <energy_max> -u <need_suboptimal> -o <out> -n <annotation> -s <strandness>  -d <gt_amount_in_kmer_max> -r <first_to_all>`
 
 Parameters:
 - -i <intervals_df> - an input file of intervals in bed 6 format (with possible additional 3 columns)  - tab-separated file with header like this:
@@ -49,6 +49,7 @@ If `-n <annotation>` is also absent, PrePH assumes that all the sequences belong
 - -d <gt_amount_in_kmer_max> - maximal number of GT pairs in kmer. Recommended for k = 5 is 2
 - -s <strandness> - account for the strand
 - -n <annotation> - genome annotation in gtf or gff format
+- -r <first_to_all> - PrePH will compare ONLY one sequence (FIRST) to all the others. In this case genes are ignored
 - -o <out> - path to output file 
   
 The final output will be stored in file called \<out>_preprocessed
@@ -72,5 +73,14 @@ Parameters are the same as above, except:
 ### Example
 `./fold.py -f AAAGGGC -s AAAGCCCAAAAAA -k 3 -a 3 -e -1 -u True -d 2`
 
+
+## Make bed input file from short genome sequence
+If you need to find panhandles in a short (e.g virus) genome, you need to divide the sequence into a set of smaller overlapping sequences to reduce memory loading. Recommended -s = 1000, -v = 30
+Run `./MakeBedForVirusGenome.py -i <input.fa> -o <output.bed> -s <size> -v <overlap>`
+
+- -i <input.fa> - sequence in fasta format. All chomoseomes must be in one sequence
+- -o <output.bed> - path to output bed file
+- -s <size> - length of output sequences
+- -v <overlap> - length of overlaps
 
 
