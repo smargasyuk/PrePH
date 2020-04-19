@@ -76,6 +76,7 @@ Parameters are the same as above, except:
 
 ## Make bed input file from short genome sequence
 If you need to find panhandles in a short (e.g virus) genome, you need to divide the sequence into a set of smaller overlapping sequences to reduce memory loading. Recommended -s = 1000, -v = 30
+
 Run `./MakeBedForVirusGenome.py -i <input.fa> -o <output.bed> -s <size> -v <overlap>`
 
 - -i <input.fa> - sequence in fasta format. All chomoseomes must be in one sequence
