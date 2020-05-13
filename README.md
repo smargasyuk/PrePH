@@ -22,7 +22,7 @@ Parameters:
 - -i <intervals_df> - an input file of intervals in bed 6 format (with possible additional 3 columns)  - tab-separated file with header like this:
 **The header is compulsory!**
 
-| chrom | chromStart | chromEnd | name | score | strand | sequences | gene_start | gene_end |
+| chrom | chromStart | chromEnd | name | score | strand | sequences | start_gene | end_gene |
 | :---: |   :---:    |  :---: |  :---: |  :---: |  :---: |  :---: |  :---: |  :---: |
 |chr1  |136219| 136233| 1 | 1 | + | GGCTTTGATAAAAA |  135223 |  138932 |
 |chr1 | 230 | 243 | 2 | 1 | - | TTTTTATAAAGCC | 105 | 310 | 
