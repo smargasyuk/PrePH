@@ -5,7 +5,11 @@ Find Pairs of Complementary regions
 
 Python version = 2.7
 
-All scripts should be run from PrePH/src directory
+## Installation
+`git clone https://github.com/kalmSveta/PrePH.git`
+`export PATH=$PATH:path_to_PrePH/src`
+Now you can run the scripts from any place
+
 
 ## Step 0 - Precalculates stacking energies matrix for kmers
 Run `./PrecalculateStackingEnergeis.py -k <kmer_length> -g <gt_amount_in_kmer_max>` 
@@ -50,7 +54,7 @@ If `-n <annotation>` is also absent, PrePH assumes that all the sequences belong
 - -s <strandness> - account for the strand
 - -n <annotation> - genome annotation in gtf or gff format
 - -r <first_to_all> - PrePH will compare ONLY one sequence (FIRST) to all the others. In this case genes are ignored
-- -o <out> - path to output file 
+- -o <out> - GLOBAL path to output file 
   
 The final output will be stored in file called \<out>_preprocessed
 
@@ -60,9 +64,9 @@ To test the scripts run:
 
 `./PrecalculateStackingEnergeis.py -k 5 -g 2` 
 
-`./FindPanhandles.py -i ../data/exammple.bed -k 5 -p 10000 -a 10 -t 5 -e -15 -u True -d 2 -s True -o output`
+`./FindPanhandles.py -i ../lib/exammple.bed -k 5 -p 10000 -a 10 -t 5 -e -15 -u True -d 2 -s True -o output`
 
-## Find PCCR in two sequences
+## Find Pair of Complementary Regions in two sequences
 Run `./fold.py -f <first_seq> -s <second_seq> -k <kmer_lentgh> -a <handle_len_min> -e <energy_max> -u <need_subopt> -d <gt_threshold>`
 
 Parameters are the same as above, except:
@@ -80,7 +84,7 @@ If you need to find panhandles in a short (e.g virus) genome, you need to divide
 Run `./MakeBedForVirusGenome.py -i <input.fa> -o <output.bed> -s <size> -v <overlap>`
 
 - -i <input.fa> - sequence in fasta format. All chomoseomes must be in one sequence
-- -o <output.bed> - path to output bed file
+- -o <output.bed> - GLOBAL path to output bed file
 - -s <size> - length of output sequences
 - -v <overlap> - length of overlaps
 
