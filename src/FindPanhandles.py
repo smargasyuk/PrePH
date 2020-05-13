@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 from numpy import argmin, unravel_index, full, empty, load, set_printoptions, argwhere, argsort
 from math import ceil
-import re, sys, getopt, itertools, binascii, time, subprocess
+import re, sys, getopt, itertools, binascii, time, subprocess, os
 from functools import partial
 sys.path.append('../../tools/')
 from pyfaidx import Fasta
@@ -10,6 +10,7 @@ import multiprocessing as mp
 from Bio.Seq import Seq
 sys.path.insert(0, './')
 from fold import * 
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 
 inf = float('inf')

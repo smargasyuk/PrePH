@@ -2,10 +2,11 @@
 
 from numpy import argmin, unravel_index, full, empty, load, set_printoptions, argwhere, argsort
 from math import ceil
-import binascii, itertools, sys, getopt
+import binascii, itertools, sys, getopt, os
 from functools import partial
 from sys import getsizeof
 inf = float('inf')
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 # Dictionary for nts (used in 1x1, 2x1, 2x2 loops in last 2 dims)
 Dic_nt = {'@': 0, 'A': 1, 'C': 2, 'G': 3, 'T': 4}

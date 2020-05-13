@@ -3,7 +3,8 @@ import itertools
 import pandas as pd
 import numpy as np
 from numpy import full
-import sys, getopt
+import sys, getopt, os
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 inf = float('inf')
 
