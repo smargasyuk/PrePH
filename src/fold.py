@@ -357,7 +357,7 @@ def main(argv):
             need_suboptimal = bool(arg)
         elif opt in ("-d", "--gt_threshold"):
             GT_threshold = int(arg)
-    kmers_stacking_matrix = load("../lib/" + str(k) + str(GT_threshold) + "mers_stacking_energy_binary.npy")
+    kmers_stacking_matrix = load("../data/" + str(k) + str(GT_threshold) + "mers_stacking_energy_binary.npy")
     seq_indxd = Index_seq(seq, k)
     seq_compl_indxd = Index_seq(seq_compl, k)
     res = FindMinEnLocAlkmer(seq, seq_compl, seq_indxd, seq_compl_indxd, k, energy_threshold, handle_length_threshold, need_suboptimal, kmers_stacking_matrix)

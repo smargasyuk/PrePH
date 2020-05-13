@@ -35,8 +35,13 @@ def Seq_to_bin(seq):
 
 
 def Precalculatekmers(k, GT_threshold):
+    try: 
+        os.makedirs('../data/')
+    except OSError:
+        if not os.path.isdir('../data/'):
+            raise
     kmers_for_bin = [''.join(p) for p in itertools.product(bases, repeat=k)]
-    with open('../lib/kmers_list_' + str(k) + 'mers_no$.txt', 'w') as filehandle:
+    with open('../data/kmers_list_' + str(k) + 'mers_no$.txt', 'w') as filehandle:
         filehandle.writelines("%s\n" % kmer for kmer in kmers_for_bin)
     kmers_bin = []
     for kmer in kmers_for_bin:
@@ -54,10 +59,10 @@ def Precalculatekmers(k, GT_threshold):
             if GT_count <= GT_threshold and stem_count == k:
                 energy = CalculateStackingEnergy(Dict_kmers[i], Dict_kmers[j][::-1])
                 kmers_array[i][j] = energy
-    np.save("../lib/" + str(k) + str(GT_threshold) + "mers_stacking_energy_no$", kmers_array)
+    np.save("../data/" + str(k) + str(GT_threshold) + "mers_stacking_energy_no$", kmers_array)
     kmers_array_for_dollar = full((kmers_array.shape[0] + 1, kmers_array.shape[0] + 1), inf)
     kmers_array_for_dollar[:-1, :-1] = kmers_array
-    np.save("../lib/" + str(k) + str(GT_threshold) +  "mers_stacking_energy_binary", kmers_array_for_dollar)
+    np.save("../data/" + str(k) + str(GT_threshold) +  "mers_stacking_energy_binary", kmers_array_for_dollar)
     return (0)
 
 def main(argv):

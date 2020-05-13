@@ -357,7 +357,7 @@ def main(argv):
     elif strandness == 'True':
         strandness = True
 
-    kmers_stacking_matrix = load("../lib/" + str(k) + str(GT_threshold) + "mers_stacking_energy_binary.npy")
+    kmers_stacking_matrix = load("../data/" + str(k) + str(GT_threshold) + "mers_stacking_energy_binary.npy")
 
     Find_panhandles(path_to_intervals, energy_threshold, handle_length_threshold,
                     panhandle_length_threshold, k,
