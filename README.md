@@ -7,7 +7,9 @@ Python version = 2.7
 
 ## Installation
 `git clone https://github.com/kalmSveta/PrePH.git`
+
 `export PATH=$PATH:path_to_PrePH/src`
+
 Now you can run the scripts from any place
 
 
