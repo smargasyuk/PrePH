@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 import re, sys, getopt, itertools, binascii, time, subprocess
 from functools import partial
-sys.path.append('../tools/')
+sys.path.append('../../tools/')
 from Bio import SeqIO
 import pandas as pd
 from Bio.Seq import Seq
