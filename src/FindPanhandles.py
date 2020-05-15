@@ -21,7 +21,7 @@ def GetSequencesForDF(genome, row):
 
 def MakeComplement(row):
     if row['strand'] == '-':
-        return(str(Seq(row['sequences']).complement()))
+        return(str(Seq(row['sequences']).reverse_complement()))
     else:
         return(row['sequences'])
 
@@ -30,7 +30,7 @@ def Find_panhandles_one_gene(lock, df, energy_threshold, handle_length_threshold
     with open(path_to_ph + '_progress', 'a') as done_f:
         with lock:
             done_f.write(str(gene) + '\n')
-    print('Working with gene ' + gene)
+    #print('Working with gene ' + gene)
     results_one_gene = []
     results_one_gene_table = pd.DataFrame(
         {'gene': [], 'energy': [],
@@ -67,7 +67,7 @@ def Find_panhandles_one_row(lock, df, energy_threshold, handle_length_threshold,
     with open(path_to_ph + '_progress', 'a') as done_f:
         with lock:
             done_f.write(str(row) + '\n')
-    print('Working with row ' + str(row))
+    #print('Working with row ' + str(row))
     results_one_row = []
     results_one_row_table = pd.DataFrame(
         {'row': [], 'energy': [],
@@ -147,7 +147,7 @@ def Find_panhandles(path_to_intervals, energy_threshold, handle_length_threshold
         GetSequencesForDF2 = partial(GetSequencesForDF, genome)
         df.loc[:, 'sequences'] = df.apply(GetSequencesForDF2, axis=1)
         if strandness:
-            print("Making complement of minus strand..")
+            print("Making reverse complement of minus strand..")
             df.loc[:, 'sequences'] = df.apply(MakeComplement, axis=1) 
         df.to_csv("../data/intervals_with_seqs.tsv", sep='\t', index=False)
     
@@ -213,76 +213,109 @@ def Find_panhandles(path_to_intervals, energy_threshold, handle_length_threshold
     print(time.time() - start_time)
     return (0)
 
-def MakePretty(path_to_ph, annotation_file):
+def MakePretty(path_to_ph, annotation_file, RNA_RNA_interaction):
+    if RNA_RNA_interaction == True:
+        print('I treat the results as RNA-RNA interaction')
     df = pd.read_csv(path_to_ph, sep="\t")
-    # Divide columns
-    if  'gene' in list(df.columns.values):
-        df[["start_gene", "end_gene"]] = df.gene.str.split('_', expand=True)[[1,2]].astype(int)
-    df[["strand"]] = df.interval1.str.split('_', expand=True)[[3]]
-    df[["chr"]] = df.interval1.str.split('_', expand=True)[[0]]
-    df[["interval1_start", "interval1_end"]] = df.interval1.str.split('_', expand=True)[[1,2]].astype(int)
-    df[["interval2_start", "interval2_end"]] = df.interval2.str.split('_', expand=True)[[1,2]].astype(int)
-
-    # Make absolute coordinates
-    df["panhandle_start"] = df.interval1_start + df.start_al1
-    df["panhandle_left_hand"] = df.interval1_start + df.end_al1
-    df["panhandle_right_hand"] = df.interval2_start + df.start_al2
-    df["panhandle_end"] = df.interval2_start + df.end_al2
-
-    # Calculate handle length
-    df["al1_length"] = df.end_al1 - df.start_al1 + 1
-    df["al2_length"] = df.end_al2 - df.start_al2 + 1
-
-    # Remove broken phs (ph in one conserved interval that have end lefter than start)
-    df = df.loc[df.panhandle_start < df.panhandle_right_hand]
-    df = df.loc[df.panhandle_left_hand < df.panhandle_right_hand]
-    df.drop(['interval1', 'interval2','start_al1','end_al1','start_al2','end_al2',
-             'interval1_start','interval2_start', 'interval1_end','interval2_end'], axis=1, inplace=True)
-    if  'gene' in list(df.columns.values):
-        df.drop(['gene'], axis=1, inplace=True)
-
-    # Add gene ids and names from annotation
-    if ((annotation_file != '') & ('gene' in list(df.columns.values))):
-        print('Adding gene ids and names from annotation..')
-        cmd = 'awk -F"\t" \'{ if ($3 == "gene") { print } }\' ' + annotation_file
-        a = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
-        if sys.version_info[0] < 3: 
-            from StringIO import StringIO
+    if df.shape[0] == 0:
+        print('No structures found!')
+    else:
+        # Divide columns
+        if  'gene' in list(df.columns.values):
+            df[["start_gene", "end_gene"]] = df.gene.str.split('_', expand=True)[[1,2]].astype(int)
+        
+        if(RNA_RNA_interaction == False): 
+            df[["strand"]] = df.interval1.str.split('_', expand=True)[[3]]
+            df[["chr"]] = df.interval1.str.split('_', expand=True)[[0]]
         else:
-            from io import StringIO
-        b = StringIO(a.communicate()[0].decode('utf-8'))
-        anno = pd.read_csv(b, sep="\t", header=None)
-        anno[["gene_id", "gene_name"]] = anno[8].str.split(';', expand=True)[[0,4]]
-        anno.gene_id.replace("gene_id", "", regex=True, inplace=True)
-        anno.gene_id.replace("\"", "", regex=True, inplace=True)
-        anno.gene_name.replace("gene_name", "", regex=True, inplace=True)
-        anno.gene_name.replace("\"", "", regex=True, inplace=True)
+            df[["strand_1"]] = df.interval1.str.split('_', expand=True)[[3]]
+            df[["chr_1"]] = df.interval1.str.split('_', expand=True)[[0]]
+            df[["strand_2"]] = df.interval2.str.split('_', expand=True)[[3]]
+            df[["chr_2"]] = df.interval2.str.split('_', expand=True)[[0]]
 
-        anno = anno[[0,3,4,6,'gene_id','gene_name']]
-        anno.columns = ['chr', 'start_gene', 'end_gene', 'strand','gene_id', 'gene_name']
-        df = pd.merge(df, anno, on=['chr','start_gene','end_gene','strand'], how="inner")
-        df.drop_duplicates(subset=["chr", "panhandle_start", "panhandle_left_hand",
-                                   "panhandle_right_hand", "panhandle_end"], inplace=True)
+        df[["interval1_start", "interval1_end"]] = df.interval1.str.split('_', expand=True)[[1,2]].astype(int)
+        df[["interval2_start", "interval2_end"]] = df.interval2.str.split('_', expand=True)[[1,2]].astype(int)
 
-    # Make alignments 5'-3' for all strands
-    df['rev1'] = df.alignment1.apply(lambda x: x[::-1])
-    df['rev2'] = df.alignment2.apply(lambda x: x[::-1])
-    df.loc[df.strand == '-', 'alignment1'] = df.loc[df.strand == '-'].rev1
-    df.loc[df.strand == '-', 'alignment2'] = df.loc[df.strand == '-'].rev2
-    df.drop(['rev1', 'rev2'], axis=1)
+        # Make absolute coordinates
+        if(RNA_RNA_interaction == False): 
+            # + strand
+            df["panhandle_start"] = df.interval1_start + df.start_al1
+            df["panhandle_left_hand"] = df.interval1_start + df.end_al1
+            df["panhandle_right_hand"] = df.interval2_start + df.start_al2
+            df["panhandle_end"] = df.interval2_start + df.end_al2
+            # - strand (reverse complement)
+            df.loc[df.strand == '-', 'panhandle_left_hand'] = df.loc[df.strand == '-'].interval1_end - df.loc[df.strand == '-'].start_al1
+            df.loc[df.strand == '-', 'panhandle_start'] = df.loc[df.strand == '-'].interval1_end - df.loc[df.strand == '-'].end_al1
+            df.loc[df.strand == '-', 'panhandle_end'] = df.loc[df.strand == '-'].interval2_end - df.loc[df.strand == '-'].start_al2
+            df.loc[df.strand == '-', 'panhandle_right_hand'] = df.loc[df.strand == '-'].interval2_end - df.loc[df.strand == '-'].end_al2
+        else:
+            # + strand
+            df.loc[df.strand_1 == '+',"panhandle_start"] = df.loc[df.strand_1 == '-'].interval1_start + df.loc[df.strand_1 == '+'].start_al1
+            df.loc[df.strand_1 == '+',"panhandle_left_hand"] = df.loc[df.strand_1 == '-'].interval1_start + df.loc[df.strand_1 == '-'].end_al1
+            df.loc[df.strand_2 == '+', "panhandle_right_hand"] = df.loc[df.strand_2 == '+'].interval2_start + df.loc[df.strand_2 == '+'].start_al2
+            df.loc[df.strand_2 == '+', "panhandle_end"] = df.loc[df.strand_2 == '+'].interval2_start + df.loc[df.strand_2 == '+'].end_al2
+            # - strand (reverse complement)
+            df.loc[df.strand_1 == '-', 'panhandle_left_hand'] = df.loc[df.strand_1 == '-'].interval1_end - df.loc[df.strand_1 == '-'].start_al1
+            df.loc[df.strand_1 == '-', 'panhandle_start'] = df.loc[df.strand_1 == '-'].interval1_end - df.loc[df.strand_1 == '-'].end_al1
+            df.loc[df.strand_2 == '-', 'panhandle_end'] = df.loc[df.strand_2 == '-'].interval2_end - df.loc[df.strand_2 == '-'].start_al2
+            df.loc[df.strand_2 == '-', 'panhandle_right_hand'] = df.loc[df.strand_2 == '-'].interval2_end - df.loc[df.strand_2 == '-'].end_al2
 
-    # Make structures 5'-3' for all strands
-    df['rev1'] = df.alignment1.apply(lambda x: x[::-1])
-    df['rev2'] = df.alignment2.apply(lambda x: x[::-1])
-    df.loc[df.strand == '-', 'alignment1'] = df.loc[df.strand == '-'].rev1
-    df.loc[df.strand == '-', 'alignment2'] = df.loc[df.strand == '-'].rev2
-    df.drop(['rev1', 'rev2'], axis=1)
 
-    # Add unique ids to phs
-    df.sort_values(by=["chr", "panhandle_start", "panhandle_left_hand",
-                               "panhandle_right_hand", "panhandle_end"], inplace=True)
-    df["id"] = range(1, df.shape[0] + 1)
-    df.to_csv(path_to_ph + '_preprocessed', sep="\t", index=False)
+
+        # Calculate handle length
+        df["al1_length"] = df.end_al1 - df.start_al1 + 1
+        df["al2_length"] = df.end_al2 - df.start_al2 + 1
+
+        # Remove broken phs (ph in one conserved interval that have end lefter than start)
+        #if ((first_to_all == False) & ()):
+            #df = df.loc[df.panhandle_start < df.panhandle_right_hand]
+            #df = df.loc[df.panhandle_left_hand < df.panhandle_right_hand]
+        df.drop(['interval1', 'interval2','start_al1','end_al1','start_al2','end_al2',
+                 'interval1_start','interval2_start', 'interval1_end','interval2_end'], axis=1, inplace=True)
+        if  'gene' in list(df.columns.values):
+            df.drop(['gene'], axis=1, inplace=True)
+
+        # Add gene ids and names from annotation
+        if ((annotation_file != '') & ('gene' in list(df.columns.values))):
+            print('Adding gene ids and names from annotation..')
+            cmd = 'awk -F"\t" \'{ if ($3 == "gene") { print } }\' ' + annotation_file
+            a = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
+            if sys.version_info[0] < 3: 
+                from StringIO import StringIO
+            else:
+                from io import StringIO
+            b = StringIO(a.communicate()[0].decode('utf-8'))
+            anno = pd.read_csv(b, sep="\t", header=None)
+            anno[["gene_id", "gene_name"]] = anno[8].str.split(';', expand=True)[[0,4]]
+            anno.gene_id.replace("gene_id", "", regex=True, inplace=True)
+            anno.gene_id.replace("\"", "", regex=True, inplace=True)
+            anno.gene_name.replace("gene_name", "", regex=True, inplace=True)
+            anno.gene_name.replace("\"", "", regex=True, inplace=True)
+
+            anno = anno[[0,3,4,6,'gene_id','gene_name']]
+            anno.columns = ['chr', 'start_gene', 'end_gene', 'strand','gene_id', 'gene_name']
+            df = pd.merge(df, anno, on=['chr','start_gene','end_gene','strand'], how="inner")
+            df.drop_duplicates(subset=["chr", "panhandle_start", "panhandle_left_hand",
+                                       "panhandle_right_hand", "panhandle_end"], inplace=True)
+
+        # Make alignments 5'-3' for all strands
+        #df['rev1'] = df.alignment1.apply(lambda x: x[::-1])
+        #df['rev2'] = df.alignment2.apply(lambda x: x[::-1])
+        #df.loc[df.strand == '-', 'alignment1'] = df.loc[df.strand == '-'].rev1
+        #df.loc[df.strand == '-', 'alignment2'] = df.loc[df.strand == '-'].rev2
+        #df.drop(['rev1', 'rev2'], axis=1)
+
+        # Make structures 5'-3' for all strands
+
+        # Add unique ids to phs
+        if RNA_RNA_interaction == False:
+            df.sort_values(by=["chr", "panhandle_start", "panhandle_left_hand",
+                                       "panhandle_right_hand", "panhandle_end"], inplace=True)
+        else:
+            df.sort_values(by=["chr_1", "panhandle_start", "panhandle_left_hand",
+                                       "panhandle_right_hand", "panhandle_end"], inplace=True)
+        df["id"] = range(1, df.shape[0] + 1)
+        df.to_csv(path_to_ph + '_preprocessed', sep="\t", index=False)
 
 def main(argv):
     #path_to_intervals = '../out/intervals_with_seqs.tsv'
@@ -298,25 +331,25 @@ def main(argv):
     GT_threshold = 2
     strandness = True
     annotation_file = ''
-    path_to_ph = "../out/panhandles.tsv"
+    path_to_ph = "../data/panhandles"
     first_to_all = False
 
     try:
-        opts, args = getopt.getopt(argv, "h:i:g:k:p:a:t:e:u:d:s:n:o:r:",
+        opts, args = getopt.getopt(argv, "h:i:g:k:p:a:t:e:u:d:s:n:o:r:c:",
                                    ["help=", "intervals=", "genome=", "k=", "panh_len_max", "handle_len_min", "threads",
-                                    "energy_max", "need_subopt", "gt_threshold", "strand", "annotation", "out", "first_to_all"])
+                                    "energy_max", "need_subopt", "gt_threshold", "strand", "annotation", "out", "first_to_all", "RNA_RNA_interaction"])
     except getopt.GetoptError:
         print(
             'FindPanhandles.py -i <intervals_df> -g <genome.fa> -k <kmer_length> -p <panhandle_len_max> ' +
-            '-a <handle_len_min> -t <threads> -e <energy_max> -u <need_suboptimal> -d <gt_threshold> -s <strand> -r <first_to_all>' +
-            '-n <annotation> -o <out>')
+            '-a <handle_len_min> -t <threads> -e <energy_max> -u <need_suboptimal> -d <gt_threshold> -s <strand> -r <first_to_all> ' +
+            '-c <RNA_RNA_interaction> -n <annotation> -o <out>')
         sys.exit(2)
     for opt, arg in opts:
         if opt in ('-h', '--help'):
             print(
                 'FindPanhandles.py -i <intervals_df> -g <genome.fa> -k <kmer_length> -p <panhandle_len_max> ' +
-                '-a <handle_len_min> -t <threads> -e <energy_max> -u <need_suboptimal> -d <gt_threshold> -s <strand> -r <first_to_all>' +
-                '-n <annotation> -o <out>')
+                '-a <handle_len_min> -t <threads> -e <energy_max> -u <need_suboptimal> -d <gt_threshold> -s <strand> -r <first_to_all> ' +
+                '-c <RNA_RNA_interaction> -n <annotation> -o <out>')
             sys.exit()
         elif opt in ("-i", "--intervals"):
             path_to_intervals = arg
@@ -343,11 +376,17 @@ def main(argv):
         elif opt in ("-o", "--out"):
             path_to_ph = arg
         elif opt in ("-r", "--first_to_all"):
-            first_to_all = arg    
+            first_to_all = arg   
+        elif opt in ("-c", "--RNA_RNA_interaction"):
+            RNA_RNA_interaction = arg                
     if first_to_all == 'False':
         first_to_all = False
     elif first_to_all == 'True':
         first_to_all = True
+    if RNA_RNA_interaction == 'False':
+        RNA_RNA_interaction = False
+    elif RNA_RNA_interaction == 'True':
+        RNA_RNA_interaction = True   
     if need_suboptimal == 'False':
         need_suboptimal = False
     elif need_suboptimal == 'True':
@@ -365,7 +404,7 @@ def main(argv):
                     kmers_stacking_matrix, strandness, 
                     annotation_file, path_to_ph,
                     first_to_all)
-    MakePretty(path_to_ph, annotation_file)
+    MakePretty(path_to_ph, annotation_file, RNA_RNA_interaction)
 
 
 if __name__ == '__main__':
