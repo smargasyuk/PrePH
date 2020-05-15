@@ -250,8 +250,8 @@ def MakePretty(path_to_ph, annotation_file, RNA_RNA_interaction):
             df.loc[df.strand == '-', 'panhandle_right_hand'] = df.loc[df.strand == '-'].interval2_end - df.loc[df.strand == '-'].end_al2
         else:
             # + strand
-            df.loc[df.strand_1 == '+',"panhandle_start"] = df.loc[df.strand_1 == '-'].interval1_start + df.loc[df.strand_1 == '+'].start_al1
-            df.loc[df.strand_1 == '+',"panhandle_left_hand"] = df.loc[df.strand_1 == '-'].interval1_start + df.loc[df.strand_1 == '-'].end_al1
+            df.loc[df.strand_1 == '+',"panhandle_start"] = df.loc[df.strand_1 == '+'].interval1_start + df.loc[df.strand_1 == '+'].start_al1
+            df.loc[df.strand_1 == '+',"panhandle_left_hand"] = df.loc[df.strand_1 == '+'].interval1_start + df.loc[df.strand_1 == '+'].end_al1
             df.loc[df.strand_2 == '+', "panhandle_right_hand"] = df.loc[df.strand_2 == '+'].interval2_start + df.loc[df.strand_2 == '+'].start_al2
             df.loc[df.strand_2 == '+', "panhandle_end"] = df.loc[df.strand_2 == '+'].interval2_start + df.loc[df.strand_2 == '+'].end_al2
             # - strand (reverse complement)
