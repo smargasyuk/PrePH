@@ -12,6 +12,8 @@ Python version = 2.7
 
 Now you can run the scripts from any place
 
+Always use GLOBAL paths to input and output files
+
 
 ## Step 0 - Precalculates stacking energies matrix for kmers
 Run `./PrecalculateStackingEnergeis.py -k <kmer_length> -g <gt_amount_in_kmer_max>` 
