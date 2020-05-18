@@ -38,7 +38,7 @@ The output files will be stored in ../data/ directory:
 Run `FindPanhandles.py -i <intervals_df> -g <genome.fa> -k <kmer_lentgh> -p <panhandle_len_max>  -a <handle_len_min> -t <threads> -e <energy_max> -u <need_suboptimal> -o <out> -n <annotation> -s <strandness>  -d <gt_amount_in_kmer_max> -r <first_to_all>`
 
 Parameters:
-- -i <intervals_df> - an input file of intervals in bed 6 format (with possible additional 3 columns)  - tab-separated file with header like this:
+- -i <intervals_df> - GLOBAL path to input file of intervals in bed 6 format (with possible additional 3 columns)  - tab-separated file with header like this:
 **The header is compulsory!**
 
 | chrom | chromStart | chromEnd | name | score | strand | sequences | start_gene | end_gene |
@@ -51,7 +51,7 @@ Parameters:
 This file can be taken from step 1.
 
 **if column 'sequences' is absent:**
-`-g <genome.fa>` must be provided in fasta format. It should have sequences which include interval sequences. E.g. a whole human genome. 'sequences' colunm will be extracted automatically
+`-g <genome.fa>` GLOBAL path to genome must be provided in fasta format. It should have sequences which include interval sequences. E.g. a whole human genome. 'sequences' colunm will be extracted automatically
 
 
 The comparison of seuqences is performed only inside one gene, that is why PrePh needs to know gene coordinates. All sequences in one gene will be compared in a pairwise manner to find complementary regions between them
