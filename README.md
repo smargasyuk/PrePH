@@ -24,8 +24,8 @@ Parameters:
 ## Step 1 - Select conserved intronic intervals (CII)
 Run `SelectIntervals.py -a <annotation> -c <cons_regions> -l <handle_len_min> -f <flanks>`
 
-- -a <annotation> - genome annotation in gtf format
-- -c <cons_regions> - phastConsElements file
+- -a <annotation> - GLOBAL path to genome annotation in gtf format
+- -c <cons_regions> - GLOBAL path to phastConsElements file
 - -l <handle_len_min> - minimum length of CCR
 - -f <flanks> - length of flanks that can intersect CDS
   
