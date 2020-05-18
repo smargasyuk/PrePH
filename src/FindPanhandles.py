@@ -157,6 +157,12 @@ def Find_panhandles(path_to_intervals, energy_threshold, handle_length_threshold
     # Check sequences are all from DNA, not RNA
     df.sequences = df.sequences.replace("U", "T", regex=True) 
 
+    # Check if sequences have non ATGC symbols
+    df["wrong_symbol"] = df['sequences'].apply(lambda x: any(c not in 'ATGC' for c in x))
+    if any(df.wrong_symbol == True):
+        print('I have removed ' + str(df.loc[df.wrong_symbol == True].shape[0]) + ' rows with non ATGC symbols')
+        df = df.loc[df.wrong_symbol != True]
+
     # Index sequences
     df["sequences_indxd"] = df['sequences'].apply(lambda x: Index_seq(x, k))
     df = df.loc[df.sequences_indxd != False]
@@ -318,7 +324,7 @@ def MakePretty(path_to_ph, annotation_file, RNA_RNA_interaction):
         df.to_csv(path_to_ph + '_preprocessed', sep="\t", index=False)
 
 def main(argv):
-    path_to_intervals = ''
+    path_to_intervals = '../data/conin_python_long_coding_final.tsv'
     genome_file = ''
     k = 5
     panhandle_length_threshold = 10000
