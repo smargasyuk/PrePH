@@ -318,8 +318,6 @@ def MakePretty(path_to_ph, annotation_file, RNA_RNA_interaction):
         df.to_csv(path_to_ph + '_preprocessed', sep="\t", index=False)
 
 def main(argv):
-    #path_to_intervals = '../out/intervals_with_seqs.tsv'
-    #genome_file = './../../../genomes/GRCh37.p13.genome.fa'
     path_to_intervals = ''
     genome_file = ''
     k = 5
@@ -333,6 +331,7 @@ def main(argv):
     annotation_file = ''
     path_to_ph = "../data/panhandles"
     first_to_all = False
+    RNA_RNA_interaction = False 
 
     try:
         opts, args = getopt.getopt(argv, "h:i:g:k:p:a:t:e:u:d:s:n:o:r:c:",
