@@ -73,9 +73,9 @@ If `-n <annotation>` is also absent, PrePH assumes that all the sequences belong
 - -s <strandness> - account for the strand
 - -n <annotation> - genome annotation in gtf or gff format
 - -r <first_to_all> - PrePH will compare ONLY one sequence (FIRST) to all the others. In this case genes are ignored
-- -o <out> - GLOBAL path to output file 
+- -o <out> - GLOBAL path to output folder 
   
-The final output will be stored in file called \<out>_preprocessed
+The final output will be stored in file called \<out>/panhandles_preprocessed.tsv
 
 
 ### Test example
