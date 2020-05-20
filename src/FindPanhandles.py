@@ -282,7 +282,7 @@ def MakePretty(path_to_ph, annotation_file, RNA_RNA_interaction):
             df.drop(['gene'], axis=1, inplace=True)
 
         # Add gene ids and names from annotation
-        if ((annotation_file != '') & ('gene' in list(df.columns.values))):
+        if ((annotation_file != '') & ('start_gene' in list(df.columns.values))):
             print('Adding gene ids and names from annotation..')
             cmd = 'awk -F"\t" \'{ if ($3 == "gene") { print } }\' ' + annotation_file
             a = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
