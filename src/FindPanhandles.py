@@ -27,7 +27,7 @@ def MakeComplement(row):
 
 def Find_panhandles_one_gene(lock, df, energy_threshold, handle_length_threshold, panhandle_length_threshold, k,
                              need_suboptimal, kmers_stacking_matrix, path_to_ph, gene):
-    with open(path_to_ph + '_progress', 'a') as done_f:
+    with open(path_to_ph + '/progress.txt', 'a') as done_f:
         with lock:
             done_f.write(str(gene) + '\n')
     #print('Working with gene ' + gene)
@@ -58,13 +58,13 @@ def Find_panhandles_one_gene(lock, df, energy_threshold, handle_length_threshold
                  'start_al1': alignment[1], 'end_al1': alignment[2],
                  'start_al2': alignment[3], 'end_al2': alignment[4],
                  'alignment1': alignment[5], 'alignment2': alignment[6], 'structure': alignment[7]}, ignore_index=True)
-    with open(path_to_ph, 'a') as f:
+    with open(path_to_ph + '/panhandles.tsv', 'a') as f:
         with lock:
             results_one_gene_table.to_csv(f, sep='\t', index=False, header=False)
 
 def Find_panhandles_one_row(lock, df, energy_threshold, handle_length_threshold, k,
                              need_suboptimal, kmers_stacking_matrix, path_to_ph, row):
-    with open(path_to_ph + '_progress', 'a') as done_f:
+    with open(path_to_ph + '/progress.txt', 'a') as done_f:
         with lock:
             done_f.write(str(row) + '\n')
     #print('Working with row ' + str(row))
@@ -90,7 +90,7 @@ def Find_panhandles_one_row(lock, df, energy_threshold, handle_length_threshold,
                  'start_al1': alignment[1], 'end_al1': alignment[2],
                  'start_al2': alignment[3], 'end_al2': alignment[4],
                  'alignment1': alignment[5], 'alignment2': alignment[6], 'structure': alignment[7]}, ignore_index=True)
-    with open(path_to_ph, 'a') as f:
+    with open(path_to_ph + '/panhandles.tsv', 'a') as f:
         with lock:
             results_one_row_table.to_csv(f, sep='\t', index=False, header=False)
     
@@ -171,13 +171,13 @@ def Find_panhandles(path_to_intervals, energy_threshold, handle_length_threshold
     if first_to_all == False:
         # Create headers for out files
         print("Creating files..")
-        with open(path_to_ph + '_progress', 'w') as done_f:
+        with open(path_to_ph + '/progress.txt', 'w') as done_f:
             done_f.write('Started alignment: \n')
         results_one_gene_table = pd.DataFrame(
             {'gene': [], 'energy': [],
              'start_al1': [], 'end_al1': [], 'start_al2': [], 'end_al2': [],
              'alignment1': [], 'alignment2': [], 'structure': [], 'interval1': [], 'interval2': []})
-        with open(path_to_ph, 'w') as f:
+        with open(path_to_ph + '/panhandles.tsv', 'w') as f:
             results_one_gene_table.to_csv(f, sep='\t', index=False, header=True)
         # Order intervals
         df.sort_values(by=['gene_chr_start_end_strand', 'chromStart', 'chromEnd'], inplace=True)
@@ -196,13 +196,13 @@ def Find_panhandles(path_to_intervals, energy_threshold, handle_length_threshold
     elif first_to_all == True:
         print('I will compare only the first sequence to all the others!')
         print("Creating files..")
-        with open(path_to_ph + '_progress', 'w') as done_f:
+        with open(path_to_ph + '/progress.txt', 'w') as done_f:
             done_f.write('Started alignment: \n')
         results_one_row_table = pd.DataFrame(
             {'row': [], 'energy': [],
              'start_al1': [], 'end_al1': [], 'start_al2': [], 'end_al2': [],
              'alignment1': [], 'alignment2': [], 'structure': [], 'interval1': [], 'interval2': []})
-        with open(path_to_ph, 'w') as f:
+        with open(path_to_ph + '/panhandles.tsv', 'w') as f:
             results_one_row_table.to_csv(f, sep='\t', index=False, header=True)
         # Work
         print('Start to align..') 
@@ -222,7 +222,7 @@ def Find_panhandles(path_to_intervals, energy_threshold, handle_length_threshold
 def MakePretty(path_to_ph, annotation_file, RNA_RNA_interaction):
     if RNA_RNA_interaction == True:
         print('I treat the results as RNA-RNA interaction')
-    df = pd.read_csv(path_to_ph, sep="\t")
+    df = pd.read_csv(path_to_ph + '/panhandles.tsv', sep="\t")
     if df.shape[0] == 0:
         print('No structures found!')
     else:
@@ -321,7 +321,7 @@ def MakePretty(path_to_ph, annotation_file, RNA_RNA_interaction):
             df.sort_values(by=["chr_1", "panhandle_start", "panhandle_left_hand",
                                        "panhandle_right_hand", "panhandle_end"], inplace=True)
         df["id"] = range(1, df.shape[0] + 1)
-        df.to_csv(path_to_ph + '_preprocessed', sep="\t", index=False)
+        df.to_csv(path_to_ph + '/panhandles_preprocessed.tsv', sep="\t", index=False)
 
 def main(argv):
     path_to_intervals = '../data/conin_python_long_coding_final.tsv'
@@ -345,16 +345,16 @@ def main(argv):
                                     "energy_max", "need_subopt", "gt_threshold", "strand", "annotation", "out", "first_to_all", "RNA_RNA_interaction"])
     except getopt.GetoptError:
         print(
-            'FindPanhandles.py -i <intervals_df> -g <genome.fa> -k <kmer_length> -p <panhandle_len_max> ' +
+            'FindPanhandles.py -i <intervals.bed> -g <genome.fa> -k <kmer_length> -p <panhandle_len_max> ' +
             '-a <handle_len_min> -t <threads> -e <energy_max> -u <need_suboptimal> -d <gt_threshold> -s <strand> -r <first_to_all> ' +
-            '-c <RNA_RNA_interaction> -n <annotation> -o <out>')
+            '-c <RNA_RNA_interaction> -n <annotation.gtf> -o <out_folder>')
         sys.exit(2)
     for opt, arg in opts:
         if opt in ('-h', '--help'):
             print(
-                'FindPanhandles.py -i <intervals_df> -g <genome.fa> -k <kmer_length> -p <panhandle_len_max> ' +
+                'FindPanhandles.py -i <intervals.bed> -g <genome.fa> -k <kmer_length> -p <panhandle_len_max> ' +
                 '-a <handle_len_min> -t <threads> -e <energy_max> -u <need_suboptimal> -d <gt_threshold> -s <strand> -r <first_to_all> ' +
-                '-c <RNA_RNA_interaction> -n <annotation> -o <out>')
+                '-c <RNA_RNA_interaction> -n <annotation.gtf> -o <out_folder>')
             sys.exit()
         elif opt in ("-i", "--intervals"):
             path_to_intervals = arg
