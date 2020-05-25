@@ -16,7 +16,7 @@ Always use GLOBAL paths to input and output files
 
 
 ## Step 0 - Precalculates stacking energies matrix for kmers
-Run `./PrecalculateStackingEnergeis.py -k <kmer_length> -g <gt_amount_in_kmer_max>` 
+Run `PrecalculateStackingEnergeis.py -k <kmer_length> -g <gt_amount_in_kmer_max>` 
 
 This script needs to be run only once before usage. 
 Parameters:
