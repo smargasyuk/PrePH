@@ -1,6 +1,7 @@
 #!/usr/bin/env python2
 import re, sys, getopt, itertools, binascii, time, subprocess
 from functools import partial
+import os
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append('../../tools/')
 from Bio import SeqIO
