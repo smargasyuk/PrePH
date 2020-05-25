@@ -229,7 +229,7 @@ def MakePretty(path_to_ph, annotation_file, RNA_RNA_interaction):
         # Divide columns
         if  'gene' in list(df.columns.values):
             df[["start_gene", "end_gene"]] = df.gene.str.split('_', expand=True)[[1,2]].astype(int)
-        
+
         if(RNA_RNA_interaction == False): 
             df[["strand"]] = df.interval1.str.split('_', expand=True)[[3]]
             df[["chr"]] = df.interval1.str.split('_', expand=True)[[0]]
@@ -254,6 +254,23 @@ def MakePretty(path_to_ph, annotation_file, RNA_RNA_interaction):
             df.loc[df.strand == '-', 'panhandle_start'] = df.loc[df.strand == '-'].interval1_end - df.loc[df.strand == '-'].end_al1
             df.loc[df.strand == '-', 'panhandle_end'] = df.loc[df.strand == '-'].interval2_end - df.loc[df.strand == '-'].start_al2
             df.loc[df.strand == '-', 'panhandle_right_hand'] = df.loc[df.strand == '-'].interval2_end - df.loc[df.strand == '-'].end_al2
+
+            df = df.loc[~((df.panhandle_left_hand > df.panhandle_right_hand) & (df.panhandle_start < df.panhandle_end))]
+
+            x = df.loc[df.panhandle_start > df.panhandle_end]
+            y = df.loc[~(df.panhandle_start > df.panhandle_end)]
+            x['al1'] = x[['alignment2']]
+            x['alignment2'] = x[['alignment1']]
+            x['alignment1'] = x[['al1']]
+            x['lh'] = x[['panhandle_left_hand']]
+            x['panhandle_left_hand'] = x[['panhandle_end']]
+            x['panhandle_end'] = x[['lh']]
+            x['st'] = x[['panhandle_start']]
+            x['panhandle_start'] = x[['panhandle_right_hand']]
+            x['panhandle_right_hand'] = x[['st']]
+            x.drop(['al1', 'lh', 'st'], inplace = True, axis = 1)
+            df = y.append(x)
+
         else:
             # + strand
             df.loc[df.strand_1 == '+',"panhandle_start"] = df.loc[df.strand_1 == '+'].interval1_start + df.loc[df.strand_1 == '+'].start_al1
