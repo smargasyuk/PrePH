@@ -259,17 +259,18 @@ def MakePretty(path_to_ph, annotation_file, RNA_RNA_interaction):
 
             x = df.loc[df.panhandle_start > df.panhandle_end]
             y = df.loc[~(df.panhandle_start > df.panhandle_end)]
-            x['al1'] = x[['alignment2']]
-            x['alignment2'] = x[['alignment1']]
-            x['alignment1'] = x[['al1']]
-            x['lh'] = x[['panhandle_left_hand']]
-            x['panhandle_left_hand'] = x[['panhandle_end']]
-            x['panhandle_end'] = x[['lh']]
-            x['st'] = x[['panhandle_start']]
-            x['panhandle_start'] = x[['panhandle_right_hand']]
-            x['panhandle_right_hand'] = x[['st']]
-            x.drop(['al1', 'lh', 'st'], inplace = True, axis = 1)
-            df = y.append(x)
+            if x.shape[0] != 0:
+                x['al1'] = x[['alignment2']]
+                x['alignment2'] = x[['alignment1']]
+                x['alignment1'] = x[['al1']]
+                x['lh'] = x[['panhandle_left_hand']]
+                x['panhandle_left_hand'] = x[['panhandle_end']]
+                x['panhandle_end'] = x[['lh']]
+                x['st'] = x[['panhandle_start']]
+                x['panhandle_start'] = x[['panhandle_right_hand']]
+                x['panhandle_right_hand'] = x[['st']]
+                x.drop(['al1', 'lh', 'st'], inplace = True, axis = 1)
+                df = y.append(x)
 
         else:
             # + strand
