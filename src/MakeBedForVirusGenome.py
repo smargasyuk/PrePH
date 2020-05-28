@@ -16,7 +16,20 @@ def split_overlap_i(seq, size, overlap):
         yield(i)
 def find_end(row):
     return(row['chromStart'] + len(row['sequences']) - 1)
-    
+
+def MakeDataFrame(record):
+    seq = str(record.seq)
+    seqs = [x for x in split_overlap(seq, size, overlap)]
+    df = pd.DataFrame(seqs, columns=['sequences'])
+    df['chrom'] = record.id
+    df['chromStart'] = [x+1 for x in split_overlap_i(seq, size, overlap)] 
+    df['chromEnd'] = df.apply(find_end, axis = 1)
+    df['name'] = range(1,df.shape[0]+1)
+    df['score'] = 1
+    df['strand'] = '+'
+    df = df[['chrom', 'chromStart', 'chromEnd', 'name', 'score', 'strand', 'sequences']]
+    return(df)
+
 def main(argv):
     path_to_input = ''
     path_to_output = ''
@@ -42,18 +55,18 @@ def main(argv):
         elif opt in ("-v", "--overlap"):
             overlap = int(arg)
 
-    records = SeqIO.read(path_to_input, "fasta")
-    seq = str(records.seq)
-    seqs = [x for x in split_overlap(seq, size, overlap)]
-    df = pd.DataFrame(seqs, columns=['sequences'])
-    df['chrom'] = 'chr1'
-    df['chromStart'] = [x+1 for x in split_overlap_i(seq, size, overlap)] 
-    df['chromEnd'] = df.apply(find_end, axis = 1)
-    df['name'] = range(1,df.shape[0]+1)
-    df['score'] = 1
-    df['strand'] = '+'
-    df = df[['chrom', 'chromStart', 'chromEnd', 'name', 'score', 'strand', 'sequences']]
+    
+    records = list(SeqIO.parse(path_to_input, "fasta"))
+    dfs = map(MakeDataFrame, records)
+    df = pd.concat(dfs)
     df.to_csv(path_to_output, sep='\t', index=False, header=True)
+
+
+
+
+
+    
+
 
 
 if __name__ == '__main__':
