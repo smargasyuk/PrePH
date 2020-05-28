@@ -17,7 +17,7 @@ def split_overlap_i(seq, size, overlap):
 def find_end(row):
     return(row['chromStart'] + len(row['sequences']) - 1)
 
-def MakeDataFrame(record):
+def MakeDataFrame(size, overlap, record):
     seq = str(record.seq)
     seqs = [x for x in split_overlap(seq, size, overlap)]
     df = pd.DataFrame(seqs, columns=['sequences'])
@@ -57,7 +57,9 @@ def main(argv):
 
     
     records = list(SeqIO.parse(path_to_input, "fasta"))
-    dfs = map(MakeDataFrame, records)
+
+    MakeDataFrame2 = partial(MakeDataFrame, size,  overlap)
+    dfs = map(MakeDataFrame2, records)
     df = pd.concat(dfs)
     df.to_csv(path_to_output, sep='\t', index=False, header=True)
 
