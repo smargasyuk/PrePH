@@ -287,8 +287,8 @@ def MakePretty(path_to_ph, annotation_file, RNA_RNA_interaction):
 
 
         # Calculate handle length
-        df["al1_length"] = df.end_al1 - df.start_al1 + 1
-        df["al2_length"] = df.end_al2 - df.start_al2 + 1
+        df["al1_length"] = df.panhandle_left_hand - df.panhandle_start + 1
+        df["al2_length"] = df.panhandle_end - df.panhandle_right_hand + 1
 
         # Remove broken phs (ph in one conserved interval that have end lefter than start)
         #if ((first_to_all == False) & ()):
