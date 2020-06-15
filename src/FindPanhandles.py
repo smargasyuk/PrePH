@@ -106,12 +106,14 @@ def Find_panhandles(path_to_intervals, energy_threshold, handle_length_threshold
         seq = False
    
 
+    one_gene = False
     # Check genes 
     if not('start_gene' in list(df.columns.values)):
         if(annotation_file == ''):
             print('I assume there is only one gene..')
             df.loc[:, 'start_gene'] = 1
             df.loc[:, 'end_gene'] = max(df.chromEnd) + 10 
+            one_gene = True
         else:
             print('Attaching genes from annotation..')
             ncol = df.shape[1]
@@ -131,8 +133,13 @@ def Find_panhandles(path_to_intervals, energy_threshold, handle_length_threshold
     # check chrom
     df.chrom.replace("_", "", regex=True, inplace=True) 
 
-    # Make index for gene and interval
-    df["gene_chr_start_end_strand"] = df.chrom + "_" + df.start_gene.map(str) + "_" + df.end_gene.map(str) + "_" + df.strand
+    # Make index for gene 
+    if one_gene:
+        df["gene_chr_start_end_strand"] = "chrSmth" + "_" + df.start_gene.map(str) + "_" + df.end_gene.map(str) + "_" + df.strand
+    else:
+        df["gene_chr_start_end_strand"] = df.chrom + "_" + df.start_gene.map(str) + "_" + df.end_gene.map(str) + "_" + df.strand
+
+    # Make index for interval
     df["interval_chr_start_end_strand"] = df["chrom"] + "_" + df["chromStart"].map(str) + "_" + df[
         "chromEnd"].map(str) + "_" + df["strand"]
     df['chromStart'] = df['chromStart'].astype(int)
