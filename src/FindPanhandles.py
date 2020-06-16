@@ -378,8 +378,8 @@ def main(argv):
         if opt in ('-h', '--help'):
             print(
                 'FindPanhandles.py -i <intervals.bed> -g <genome.fa> -k <kmer_length> -p <panhandle_len_max> ' +
-                '-a <handle_len_min> -t <threads> -e <energy_max> -u <need_suboptimal> -d <gt_threshold> -s <strand> -r <first_to_all> ' +
-                '-c <RNA_RNA_interaction> -n <annotation.gtf> -o <out_folder>')
+                '-a <handle_len_min> -t <threads> -e <energy_max> -u <need_suboptimal> -d <gt_threshold> -s <strand True> -r <first_to_all False> ' +
+                '-c <RNA_RNA_interaction False> -n <annotation.gtf> -o <out_folder>')
             sys.exit()
         elif opt in ("-i", "--intervals"):
             path_to_intervals = arg
