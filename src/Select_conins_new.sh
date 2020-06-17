@@ -21,7 +21,7 @@ echo "selected only long enough"
 echo -e "chrom\tchromStart\tchromEnd\tstrand\tstart_gene\tend_gene" | cat - ../data/conin_python_long_in_genes.tsv > ../data/conin_python_long_final.tsv
 echo "added header"
 
-#rm ../data/tmp
+rm ../data/tmp
 rm ../data/conin_python_long_in_genes.tsv
 rm ../data/conin_python_in_genes.bed
 rm ../data/conin_python.bed

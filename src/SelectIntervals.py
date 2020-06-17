@@ -41,7 +41,7 @@ def select_genes(path_to_anno, gene_type):
 
 
 
-def select_intronic_regions(path_to_anno, flank_length):
+def select_intronic_regions(path_to_anno, flank_length, gene_type):
     headers = 0
     with open(path_to_anno) as f:
         while 1:
@@ -53,7 +53,10 @@ def select_intronic_regions(path_to_anno, flank_length):
     df = pd.read_csv(path_to_anno, sep="\t", skiprows=headers, header=None)
     
     # select CDSs
-    CDS = df[df[2] == 'CDS']
+    if gene_type == 'coding':
+        CDS = df[df[2] == 'CDS']
+    else:
+        CDS = df[df[2] == 'exon']
     CDS['gene_id'] = CDS[8].str.split("; ", n=2, expand=True)[0]
     CDS.gene_id = CDS.gene_id.replace("gene_id ", "", regex=True)
     CDS.gene_id = CDS.gene_id.replace("\"", "", regex=True)  
@@ -111,7 +114,7 @@ def main(argv):
     select_genes(path_to_anno, gene_type)
     #print('selected genes')
     
-    select_intronic_regions(path_to_anno, flank_length)
+    select_intronic_regions(path_to_anno, flank_length, gene_type)
     print('selected introns with flanks')
     
     call(['./Select_conins_new.sh', path_to_cons, length_min])
