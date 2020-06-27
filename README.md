@@ -5,17 +5,9 @@ Find Pairs of Complementary regions
 
 # Dependencies
 - Python version = 2.7
-- itertools
 - pandas 
 - numpy 
-- sys
 - getopt
-- os
-- math 
-- re
-- binascii
-- time
-- subprocess
 - functools
 - pyfaidx 
 - multiprocessing 
