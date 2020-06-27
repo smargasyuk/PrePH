@@ -86,7 +86,7 @@ To test the scripts run:
 `FindPanhandles.py -i ../lib/exammple.bed -k 5 -p 10000 -a 10 -t 5 -e -15 -u True -d 2 -s True -o output`
 
 ## Find Pair of Complementary Regions in two sequences
-Run `fold.py -f <first_seq> -s <second_seq> -k <kmer_lentgh> -a <handle_len_min> -e <energy_max> -u <need_subopt> -d <gt_threshold>`
+Run `fold.py -f <first_seq> -s <second_seq> -k <kmer_length> -a <handle_len_min> -e <energy_max, kcal/mol> -u <need_subopt> -d <gt_threshold>`
 
 Parameters are the same as above, except:
 
@@ -94,7 +94,12 @@ Parameters are the same as above, except:
 - -s second DNA sequence
 
 ### Example
-`fold.py -f AAAGGGC -s AAAGCCCAAAAAA -k 3 -a 3 -e -1 -u True -d 2`
+`./fold.py -f AAAGGGC -s AAAGCCCAAAAAACCTTT -k 3 -a 3 -e -1 -u True -d 2`
+
+Expected output:
+[(-10.0, 3, 6, 3, 6, 'GGGC', 'GCCC', '(((())))'), (-7.2, 0, 4, 13, 17, 'AAAGG', 'CCTTT', '((((()))))')]
+
+
 
 
 ## Make bed input file from short genome sequence
