@@ -23,6 +23,8 @@ This tool is supported for macOS. The tool has been tested on the following syst
 
 `export PATH=$PATH:path_to_PrePH/src`
 
+Typical install time on a "normal" desktop computer: less than 3s
+
 Now you can run the scripts from any place
 
 Always use GLOBAL paths to input and output files
@@ -90,6 +92,7 @@ This is a toy example with a subset of gencode hg19 annotation of only one gene
 `SelectIntervals.py -a global_bath_to_PrePH/lib/example_gencode.v19.annotation.gtf  -c global_bath_to_PrePH/lib/example_phastConsElements100way.txt  -l 10 -f 10 -t coding`
 
 Expected output: 3 output files in PrePH/data/
+Expected run time: less than 9s
 
 ## Step 2 - Predicts panhandles with handles in the intervals 
 Run `FindPanhandles.py -i <intervals_df> -g <genome.fa> -k <kmer_lentgh> -p <panhandle_len_max>  -a <handle_len_min> -t <threads> -e <energy_max> -u <need_suboptimal> -o <out> -n <annotation> -s <strandness>  -d <gt_amount_in_kmer_max> -r <first_to_all>`
@@ -157,6 +160,8 @@ The ouput file has the following columns:
 - panhandle_right_hand, panhandle_end - coordinates of the right CCR
 - al1_length, al2_length - CCRs length
 - id - unique id of PCCR
+
+Expected run time: less than 1s
 
 ## Make bed input file from short genome sequence
 If you need to find panhandles in a short (e.g virus) genome, you need to divide the sequence into a set of smaller overlapping sequences to reduce memory loading. Recommended -s = 1000, -v = 30
