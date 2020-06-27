@@ -1,9 +1,14 @@
 # PrePH
 Predict PanHandles
+PrePH is a set of Python scripts for finding Pairs of Complementary regions 
 
-Find Pairs of Complementary regions 
+# System Requirements
+## OS Requirements
+This tool is supported for macOS. The tool has been tested on the following systems:
+- Ubuntu 18.04.4
+- CentOS Linux 7
 
-# Dependencies
+## Python Dependencies
 - Python version = 2.7
 - pandas 
 - numpy 
