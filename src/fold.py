@@ -336,12 +336,12 @@ def main(argv):
                                     "need_subopt", "gt_threshold"])
     except getopt.GetoptError:
         print(
-            'fold.py -f <first_seq> -s <second_seq> -k <kmer_lentgh> -a <handle_len_min> -e <energy_max> -u <need_subopt> -d <gt_threshold>')
+            'fold.py -f <first_seq> -s <second_seq> -k <kmer_length> -a <handle_len_min> -e <energy_max, kcal/mol> -u <need_subopt> -d <gt_threshold>')
         sys.exit(2)
     for opt, arg in opts:
         if opt in ('-h', '--help'):
             print(
-                'fold.py -f <first_seq> -s <second_seq> -k <kmer_lentgh> -a <handle_len_min> -e <energy_max> -u <need_subopt> -d <gt_threshold>')
+                'fold.py -f <first_seq> -s <second_seq> -k <kmer_length> -a <handle_len_min> -e <energy_max, kcal/mol> -u <need_subopt> -d <gt_threshold>')
             sys.exit()
         elif opt in ("-f", "--first_seq"):
             seq = arg
@@ -354,9 +354,15 @@ def main(argv):
         elif opt in ("-e", "--energy_max"):
             energy_threshold = float(arg)
         elif opt in ("-u", "--need_subopt"):
-            need_suboptimal = bool(arg)
+            need_suboptimal = arg
         elif opt in ("-d", "--gt_threshold"):
             GT_threshold = int(arg)
+
+    if need_suboptimal == 'False':
+        need_suboptimal = False
+    elif need_suboptimal == 'True':
+        need_suboptimal = True
+
     kmers_stacking_matrix = load("../data/" + str(k) + str(GT_threshold) + "mers_stacking_energy_binary.npy")
     seq_indxd = Index_seq(seq, k)
     seq_compl_indxd = Index_seq(seq_compl, k)
