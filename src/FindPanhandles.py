@@ -4,7 +4,6 @@ from math import ceil
 import re, sys, getopt, itertools, binascii, time, subprocess, os
 from functools import partial
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append('../../tools/')
 from pyfaidx import Fasta
 import pandas as pd
 import multiprocessing as mp
