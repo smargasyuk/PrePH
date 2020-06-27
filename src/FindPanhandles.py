@@ -354,7 +354,7 @@ def main(argv):
     k = 5
     panhandle_length_threshold = 10000
     handle_length_threshold = 10
-    threads = 5
+    threads = 1
     energy_threshold = -15
     need_suboptimal = True
     GT_threshold = 2

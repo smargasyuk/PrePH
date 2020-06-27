@@ -26,14 +26,14 @@ def select_genes(path_to_anno, gene_type):
     else:
         print('Selected all genes')
 
-    gene_id_place = [i for i, s in enumerate(df_genes.iloc[1, 8].split(";")) if 'gene_id' in s][0]
+    gene_id_place = [i for i, s in enumerate(df_genes.iloc[0, 8].split(";")) if 'gene_id' in s][0]
     df_genes['gene_id'] = df_genes.V9.str.split("; ", n=2, expand=True)[0]
     df_genes['gene_id'] = df_genes["gene_id"].str.split(' "', n=3, expand=True)[1].str[:-1]
 
-    gene_name_place = [i for i, s in enumerate(df_genes.iloc[1, 8].split(";")) if 'gene_name' in s][0]
+    gene_name_place = [i for i, s in enumerate(df_genes.iloc[0, 8].split(";")) if 'gene_name' in s][0]
     df_genes['gene_name'] = df_genes.V9.str.split("; ", n=5, expand=True)[gene_name_place]
     df_genes['gene_name'] = df_genes["gene_name"].str.split(' "', n=3, expand=True)[1].str[:-1]
-    
+
     df_genes['gene_id_name'] = df_genes['gene_id'] + '_' + df_genes['gene_name']
     df_coding_bed = df_genes[['V1', 'V4', 'V5', 'gene_id_name', 'V6', 'V7']]
     df_coding_bed.to_csv("../data/genes.bed", sep="\t", index=False, header=False)
@@ -84,8 +84,8 @@ def select_intronic_regions(path_to_anno, flank_length, gene_type):
 
 
 def main(argv):
-    path_to_anno="../data/dm6/Drosophila_melanogaster.BDGP6.22.96_chr.gtf"
-    path_to_cons="../data/dm6/phastConsElements124way.txt"
+    path_to_anno=""
+    path_to_cons=""
     length_min=10
     flank_length=10
     gene_type = 'coding'

@@ -25,4 +25,3 @@ rm ../data/tmp
 rm ../data/conin_python_long_in_genes.tsv
 rm ../data/conin_python_in_genes.bed
 rm ../data/conin_python.bed
-rm ../data/tmp
