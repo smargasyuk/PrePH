@@ -81,6 +81,7 @@ The output files will be stored in PrePH/data/ directory:
 
 ### Example:
 This is a toy example with a subset of gencode hg19 annotation of only one gene 
+
 `SelectIntervals.py -a global_bath_to_PrePH/lib/example_gencode.v19.annotation.gtf  -c global_bath_to_PrePH/lib/example_phastConsElements100way.txt  -l 10 -f 10 -t coding`
 
 Expected output: 3 output files in PrePH/data/
