@@ -29,7 +29,10 @@ This tool is supported for macOS. The tool has been tested on the following syst
 - functools
 - pyfaidx 
 - multiprocessing 
-- Bio
+- Bio == 1.76
+
+## External Dependncies
+- bedtools
 
 ## Installation
 `git clone https://github.com/kalmSveta/PrePH.git`
