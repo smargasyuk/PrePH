@@ -34,7 +34,7 @@ def Seq_to_bin(seq):
     return (seq_bin)
 
 
-def Precalculatekmers(k, GT_threshold):
+def Precalculatekmers(k, GT_threshold, to_remove):
     try: 
         os.makedirs('../data/')
     except OSError:
@@ -56,7 +56,7 @@ def Precalculatekmers(k, GT_threshold):
             pairs = zip(Dict_kmers[i], Dict_kmers[j][::-1])
             GT_count = sum(1 for pair in pairs if (pair == ('G', 'T')) | (pair == ('T', 'G')))
             stem_count = sum(1 for pair in pairs if pair[0] + pair[1] in List_pairs)
-            if GT_count <= GT_threshold and stem_count == k:
+            if GT_count <= GT_threshold and stem_count == k and not (Dict_kmers[i] in to_remove) and not (Dict_kmers[j][::-1] in to_remove):
                 energy = CalculateStackingEnergy(Dict_kmers[i], Dict_kmers[j][::-1])
                 kmers_array[i][j] = energy
     np.save("../data/" + str(k) + str(GT_threshold) + "mers_stacking_energy_no$", kmers_array)
@@ -68,21 +68,28 @@ def Precalculatekmers(k, GT_threshold):
 def main(argv):
     k = 5
     GT_threshold = 2
+    to_remove = ''
     try:
-        opts, args = getopt.getopt(argv, "h:k:g:",
+        opts, args = getopt.getopt(argv, "h:k:g:r:",
                                    ["help=", "k=", "gt_threshold"])
     except getopt.GetoptError:
-        print('PrecalculateStrackingEnergies.py -k <kmer_length> -g <gt_amount_in_kmer_max>')
+        print('PrecalculateStrackingEnergies.py -k <kmer_length> -g <gt_amount_in_kmer_max> -r <kmers_to_remove>')
         sys.exit(2)
     for opt, arg in opts:
         if opt in ('-h', '--help'):
-            print('PrecalculateStrackingEnergies.py -k <kmer_length> -g <gt_amount_in_kmer_max>')
+            print('PrecalculateStrackingEnergies.py -k <kmer_length> -g <gt_amount_in_kmer_max> -r <kmers_to_r_move>')
             sys.exit()
         elif opt in ("-k", "--k"):
             k = int(arg)
         elif opt in ("-g", "--gt_threshold"):
             GT_threshold = int(arg)
-    Precalculatekmers(k, GT_threshold)
+        elif opt in ("-r", "--kmers_to_r_move"):
+            to_remove = arg
+    if to_remove != '':
+        text_file = open(to_remove, "r")
+        to_remove = text_file.read().split('\n')
+        print('I would remove ' + str(len(to_remove)) + ' kmers')
+    Precalculatekmers(k, GT_threshold, to_remove)
 
 
 if __name__ == '__main__':
