@@ -1,3 +1,5 @@
+![DOI:250842115](https://zenodo.org/badge/doi/10.5281/zenodo.4601044.svg)
+
 # PrePH
 Predict PanHandles
 PrePH is a set of Python scripts for finding Pairs of Complementary regions 
