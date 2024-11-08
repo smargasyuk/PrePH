@@ -3,6 +3,7 @@
 # PrePH
 Predict PanHandles
 PrePH is a set of Python scripts for finding Pairs of Complementary regions 
+Forked from [kalmSveta/PrePH](https://github.com/kalmSveta/PrePH) by Svetlana Kalmykova.
 
 This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
