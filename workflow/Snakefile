@@ -30,7 +30,7 @@ rule find_panhandles:
         genome_annotation_gtf = config["genome_annotation"],
     output:
         ph_table = PREFIX + "/output/panhandles_preprocessed.tsv"
-    conda: "envs/py2preph.yaml"
+    conda: "envs/py3preph.yaml"
     threads: 8
     resources:
         mem_mb=lambda wildcards, threads: threads * 6000,
