@@ -2,24 +2,52 @@ configfile: "config/config.yaml"
 
 PREFIX = config["root_dir"]
 
+localrules: merge_excluded_regions, select_intervals, merge_conserved_intervals
 
 rule all:
     input: PREFIX + "/output/panhandles_preprocessed.tsv"
 
 
+rule merge_excluded_region_files:
+    input: config["excluded_regions"]
+    output: PREFIX + "/data/excluded_regions_merged.bed.gz"
+    conda: "envs/py3preph.yaml"
+    resources:
+        mem_mb=6000,
+        runtime=600
+    shell: """
+zcat {input} | sort-bed - | bedops -m - | pigz -p1 > {output}    
+"""    
+
+
+rule merge_conserved_intervals:
+    input: config["conserved_regions"]
+    output: PREFIX + "/data/conserved_regions_merged.bed.gz"
+    conda: "envs/py3preph.yaml"
+    resources:
+        mem_mb=6000,
+        runtime=600
+    params:
+        range = 10
+    shell: """
+zcat {input} | tail -n+2 | cut -f2- | sort-bed - | bedops --range {params.range} --merge - | bedops --range -{params.range} --everything - | pigz -p1 > {output}    
+"""
+
+
 rule select_intervals:
     input:
         genome_annotation_gtf = config["genome_annotation"],
-        conserved_regions_table = config["conserved_regions"],
-        excluded_regions_bed = config["excluded_regions"]
+        conserved_regions_bed = PREFIX + "/data/conserved_regions_merged.bed.gz",
+        excluded_regions_bed = PREFIX + "/data/excluded_regions_merged.bed.gz"
     output:
         intervals_df = PREFIX + "/data/conin_python_long_filtered_final.tsv"
     conda: "envs/py2preph.yaml"
     resources:
         mem_mb=6000,
-        runtime=600
+        runtime=60,
+        time_min=60
     shell: """
-python workflow/scripts/PrePH/src/SelectIntervals.py -a {input.genome_annotation_gtf}  -c {input.conserved_regions_table} -r {input.excluded_regions_bed} -o $(dirname {output.intervals_df})
+python workflow/scripts/PrePH/src/SelectIntervals.py -a {input.genome_annotation_gtf}  -c {input.conserved_regions_bed} -r {input.excluded_regions_bed} -o $(dirname {output.intervals_df})
 """    
 
 
@@ -33,8 +61,9 @@ rule find_panhandles:
     conda: "envs/py3preph.yaml"
     threads: 8
     resources:
-        mem_mb=lambda wildcards, threads: threads * 6000,
-        runtime=600
+        mem_mb=lambda wildcards, threads: threads * 8000,
+        runtime=600,
+        time_min=600
     shell: """
 python workflow/scripts/PrePH/src/FindPanhandles.py -i {input.intervals_df} -g {input.genome_fa} -n {input.genome_annotation_gtf} -o $(dirname {output.ph_table}) -t {threads}
 """
