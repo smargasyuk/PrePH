@@ -1,8 +1,12 @@
+from pathlib import Path
+
 configfile: "config/config.yaml"
 
 PREFIX = config["root_dir"]
+GTF_NAME = Path(config["genome_annotation"]).with_suffix('').stem
+print(GTF_NAME)
 
-localrules: merge_excluded_regions, select_intervals, merge_conserved_intervals
+localrules: merge_excluded_regions, merge_conserved_intervals
 
 rule all:
     input: PREFIX + "/output/panhandles_preprocessed.tsv"
@@ -16,7 +20,7 @@ rule merge_excluded_region_files:
         mem_mb=6000,
         runtime=600
     shell: """
-zcat {input} | sort-bed - | bedops -m - | pigz -p1 > {output}    
+zcat {input} | sort-bed - | bedops -m - | gzip > {output}    
 """    
 
 
@@ -34,21 +38,103 @@ zcat {input} | tail -n+2 | cut -f2- | sort-bed - | bedops --range {params.range}
 """
 
 
-rule select_intervals:
+rule parse_annotation:
     input:
-        genome_annotation_gtf = config["genome_annotation"],
+        gtf = config["genome_annotation"],
+    output:
+        pq = PREFIX + "/data/" + GTF_NAME + ".pq"
+    conda:
+        "envs/py3preph.yaml"
+    cache: True
+    resources:
+        mem_mb=10000,
+        runtime=60,
+        time_min=60
+    shell:
+        """
+mkdir -p $(dirname {output.pq})  
+python -m workflow.scripts.misc.parse_annotation_to_parquet \
+    --input {input.gtf} \
+    --output {output.pq} 
+"""
+
+rule select_genes_and_exons:
+    input:
+        pq = PREFIX + "/data/" + GTF_NAME + ".pq"
+    output:
+        genes_bed = PREFIX + "/data/genes.bed",
+        cds_bed = PREFIX + "/data/CDS.bed"
+    resources:
+        mem_mb=10000,
+        runtime=60,
+        time_min=60
+    conda:
+        "envs/py3preph.yaml"
+    shell: """
+mkdir -p $(dirname {output.genes_bed})  
+python -m workflow.scripts.misc.get_genes \
+    --input {input.pq} \
+    --output-dir $(dirname {output.genes_bed})
+"""
+
+rule get_intervals:
+    input:
+        genes_bed = PREFIX + "/data/genes.bed",
+        cds_bed = PREFIX + "/data/CDS.bed",
         conserved_regions_bed = PREFIX + "/data/conserved_regions_merged.bed.gz",
         excluded_regions_bed = PREFIX + "/data/excluded_regions_merged.bed.gz"
     output:
+        genes_no_cds = PREFIX + "/data/genes_no_CDS.bed",
+        introns_with_flanks = PREFIX + "/data/introns_with_flanks.bed",
+        conin = PREFIX + "/data/conin_python.bed",
+        conin_merged = PREFIX + "/data/conin_python_merged.bed",
+        conin_filtered = PREFIX + "/data/conin_python_long_sorted_filtered.bed",
+        # intervals_df = PREFIX + "/data/conin_python_long_filtered_final.tsv"
+    conda: "envs/py3preph.yaml"    
+    resources:
+        mem_mb=6000,
+        runtime=60,
+        time_min=60
+    params:
+        flank_length = 10,
+        handle_len_min = 10
+    shell: """
+set -euxo pipefail
+
+bedtools subtract -s -a {input.genes_bed} -b {input.cds_bed} | awk -v OFS="\t" '{{$2 = $2 - 1; print}}' | sort-bed - > {output.genes_no_cds}
+
+bedops --range {params.flank_length} --everything {output.genes_no_cds} > {output.introns_with_flanks}
+
+zcat {input.conserved_regions_bed} |\
+bedtools intersect -a {output.introns_with_flanks} -b stdin |\
+awk -v OFS="\t" '! index($1, "_")' \
+> {output.conin}
+
+awk -F"\t" '{{print $1"_"$4"_"$5"_"$6,$2,$3,$4,$5,$6}}' OFS="\t" {output.conin} | bedtools sort -i stdin | bedtools merge -s -c 4 -o distinct -i stdin | awk -F"\t" '{{n = split($1, a, "_"); print a[1],$2,$3,$4,a[4],a[5]}}' OFS="\t" | sort-bed - > {output.conin_merged}
+echo "intersected with conserved regions, merge, intersected with genes"
+
+bedtools subtract -a {output.conin_merged} -b {input.excluded_regions_bed} |\
+bedtools sort -i stdin | bedtools merge -s -c 4 -o distinct -i stdin |\
+awk -v OFS="\t" '$3 - $2 + 1 >= {params.handle_len_min}' > {output.conin_filtered}
+echo "filtered"
+""" 
+
+rule build_ci_table:
+    input:
+        ci_bed = PREFIX + "/data/conin_python_long_sorted_filtered.bed",
+        genes_bed = PREFIX + "/data/genes.bed",
+    output:
         intervals_df = PREFIX + "/data/conin_python_long_filtered_final.tsv"
-    conda: "envs/py2preph.yaml"
+    conda: "envs/py3preph.yaml"    
     resources:
         mem_mb=6000,
         runtime=60,
         time_min=60
     shell: """
-python workflow/scripts/PrePH/src/SelectIntervals.py -a {input.genome_annotation_gtf}  -c {input.conserved_regions_bed} -r {input.excluded_regions_bed} -o $(dirname {output.intervals_df})
-"""    
+python -m workflow.scripts.misc.build_CI_table \
+    --input {input.ci_bed} --input-genes {input.genes_bed} \
+    --output {output.intervals_df}
+""" 
 
 
 rule find_panhandles:
