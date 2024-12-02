@@ -1,0 +1,6 @@
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - ucsc-bedtobigbed =469
+  - ucsc-fetchchromsizes =469

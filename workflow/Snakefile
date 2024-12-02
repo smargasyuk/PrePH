@@ -6,7 +6,7 @@ PREFIX = config["root_dir"]
 GTF_NAME = Path(config["genome_annotation"]).with_suffix('').stem
 print(GTF_NAME)
 
-localrules: merge_excluded_regions, merge_conserved_intervals
+localrules: merge_excluded_regions, merge_conserved_intervals, ph_to_bed12, getChromSizes, bedToBigBed
 
 rule all:
     input: PREFIX + "/output/panhandles_preprocessed.tsv"
@@ -32,7 +32,7 @@ rule merge_conserved_intervals:
         mem_mb=6000,
         runtime=600
     params:
-        range = 10
+        range = 5
     shell: """
 zcat {input} | tail -n+2 | cut -f2- | sort-bed - | bedops --range {params.range} --merge - | bedops --range -{params.range} --everything - | pigz -p1 > {output}    
 """
@@ -152,4 +152,44 @@ rule find_panhandles:
         time_min=600
     shell: """
 python workflow/scripts/PrePH/src/FindPanhandles.py -i {input.intervals_df} -g {input.genome_fa} -n {input.genome_annotation_gtf} -o $(dirname {output.ph_table}) -t {threads}
+"""
+
+rule ph_to_bed12:
+    input:
+        ph_table = PREFIX + "/output/panhandles_preprocessed.tsv",
+    output:
+        ph_bed12 = PREFIX + "/output/panhandles.bed"
+    conda: "envs/py3preph.yaml"
+    resources:
+        mem_mb=5000,
+        runtime=60,
+        time_min=60    
+    shell: """
+python workflow/scripts/misc/ph_to_bed.py --input {input.ph_table} --output {output.ph_bed12}
+"""
+
+rule getChromSizes:
+    output: PREFIX + "/data/{genome}.chromSizes"
+    conda: "envs/kent.yaml"
+    resources:
+        mem_mb=1000,
+        runtime=10,
+        time_min=10  
+    shell: """
+fetchChromSizes {wildcards.genome} > {output}
+"""
+
+rule bedToBigBed:
+    input:
+        bed = PREFIX + "/output/panhandles.bed",
+        chrom_sizes = PREFIX + "/data/hg38.chromSizes"
+    output:
+        bb = PREFIX + "/output/panhandles.bb"
+    conda: "envs/kent.yaml"
+    resources:
+        mem_mb=5000,
+        runtime=60,
+        time_min=60    
+    shell: """
+bedToBigBed {input.bed} {input.chrom_sizes} {output.bb}
 """
