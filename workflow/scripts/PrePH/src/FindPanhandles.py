@@ -32,10 +32,9 @@ def Find_panhandles_one_gene(lock, df, energy_threshold, handle_length_threshold
             done_f.write(str(gene) + '\n')
     #print('Working with gene ' + gene)
     results_one_gene = []
-    results_one_gene_table = pd.DataFrame(
-        {'gene': [], 'energy': [],
-         'start_al1': [], 'end_al1': [], 'start_al2': [], 'end_al2': [],
-         'alignment1': [], 'alignment2': [], 'structure': [], 'interval1': [], 'interval2': []})
+    results_one_gene_table_columns = ['gene', 'energy',
+         'start_al1', 'end_al1', 'start_al2', 'end_al2',
+         'alignment1', 'alignment2', 'structure', 'interval1', 'interval2']
     interval_indexes = df.index[df['gene_chr_start_end_strand'] == gene].tolist()
     for left_interval_index in range(interval_indexes[0], interval_indexes[len(interval_indexes) - 1]):
         seq1 = df.loc[left_interval_index, 'sequences'][:]
@@ -46,18 +45,18 @@ def Find_panhandles_one_gene(lock, df, energy_threshold, handle_length_threshold
             seq2_indxd = df.loc[right_interval_index, 'sequences_indxd'][:]
             if abs(df.loc[right_interval_index, 'chromStart'] - df.loc[left_interval_index, 'chromEnd']) \
                     <= panhandle_length_threshold:
-                align = FindMinEnLocAlkmer(seq1, seq2, seq1_indxd, seq2_indxd, k, energy_threshold,
+                align = FindMinEnLocAlkmer(seq1.encode('ascii'), seq2.encode('ascii'), seq1_indxd, seq2_indxd, k, energy_threshold,
                                                      handle_length_threshold, need_suboptimal, kmers_stacking_matrix)
+                # print(align)
                 if align != 0:
                     results_one_gene.append([align, df.loc[left_interval_index, 'interval_chr_start_end_strand'],
                                              df.loc[right_interval_index, 'interval_chr_start_end_strand']])
-    for result in results_one_gene:
-        for alignment in result[0]:
-            results_one_gene_table = results_one_gene_table.append(
-                {'gene': gene, 'energy': alignment[0], 'interval1': result[1], 'interval2': result[2],
+    results_one_gene_table = pd.DataFrame([{'gene': gene, 'energy': alignment[0], 'interval1': result[1], 'interval2': result[2],
                  'start_al1': alignment[1], 'end_al1': alignment[2],
                  'start_al2': alignment[3], 'end_al2': alignment[4],
-                 'alignment1': alignment[5], 'alignment2': alignment[6], 'structure': alignment[7]}, ignore_index=True)
+                 'alignment1': alignment[5], 'alignment2': alignment[6], 'structure': alignment[7]} for result in results_one_gene for alignment in result[0]], columns=results_one_gene_table_columns)
+    for c in ['alignment1', 'alignment2', 'structure']:
+        results_one_gene_table[c] = results_one_gene_table[c].astype(str)
     with open(path_to_ph + '/panhandles.tsv', 'a') as f:
         with lock:
             results_one_gene_table.to_csv(f, sep='\t', index=False, header=False)
@@ -69,27 +68,23 @@ def Find_panhandles_one_row(lock, df, energy_threshold, handle_length_threshold,
             done_f.write(str(row) + '\n')
     #print('Working with row ' + str(row))
     results_one_row = []
-    results_one_row_table = pd.DataFrame(
-        {'row': [], 'energy': [],
-         'start_al1': [], 'end_al1': [], 'start_al2': [], 'end_al2': [],
-         'alignment1': [], 'alignment2': [], 'structure': [], 'interval1': [], 'interval2': []})
+    results_one_row_table_columns = ['row', 'energy', 'start_al1', 'end_al1', 'start_al2', 'end_al2', 'alignment1', 'alignment2', 'structure', 'interval1', 'interval2']
     
     seq1 = df.loc[0, 'sequences'][:]
     seq1_indxd = df.loc[0, 'sequences_indxd'][:]
     seq2 = df.loc[row, 'sequences'][:]
     seq2_indxd = df.loc[row, 'sequences_indxd'][:]
-    align = FindMinEnLocAlkmer(seq1, seq2, seq1_indxd, seq2_indxd, k, energy_threshold,
+    align = FindMinEnLocAlkmer(seq1.encode('ascii'), seq2.encode('ascii'), seq1_indxd, seq2_indxd, k, energy_threshold,
         handle_length_threshold, need_suboptimal, kmers_stacking_matrix)
     if align != 0:
         results_one_row.append([align, df.loc[0, 'interval_chr_start_end_strand'],
             df.loc[row, 'interval_chr_start_end_strand']])
-    for result in results_one_row:
-        for alignment in result[0]:
-            results_one_row_table = results_one_row_table.append(
-                {'row': row, 'energy': alignment[0], 'interval1': result[1], 'interval2': result[2],
+    results_one_row_table = pd.DataFrame([{'row': row, 'energy': alignment[0], 'interval1': result[1], 'interval2': result[2],
                  'start_al1': alignment[1], 'end_al1': alignment[2],
                  'start_al2': alignment[3], 'end_al2': alignment[4],
-                 'alignment1': alignment[5], 'alignment2': alignment[6], 'structure': alignment[7]}, ignore_index=True)
+                 'alignment1': alignment[5], 'alignment2': alignment[6], 'structure': alignment[7]} for result in results_one_row for alignment in result[0]], columns=results_one_row_table_columns)
+    for c in ['alignment1', 'alignment2', 'structure']:
+        results_one_row_table[c] = results_one_row_table[c].astype(str)
     with open(path_to_ph + '/panhandles.tsv', 'a') as f:
         with lock:
             results_one_row_table.to_csv(f, sep='\t', index=False, header=False)
@@ -131,7 +126,7 @@ def Find_panhandles(path_to_intervals, energy_threshold, handle_length_threshold
                 df.columns = ['chrom', 'chromStart', 'chromEnd', 'name', 'score', 'strand', 'start_gene', 'end_gene']
 
     # check chrom
-    df.chrom.replace("_", "", regex=True, inplace=True) 
+    df['chrom'] = df['chrom'].replace("_", "", regex=True) 
 
     # Make index for gene 
     if one_gene:
@@ -159,7 +154,7 @@ def Find_panhandles(path_to_intervals, energy_threshold, handle_length_threshold
         df.to_csv("../data/intervals_with_seqs.tsv", sep='\t', index=False)
     
     # Check sequences are all upper case    
-    df.sequences = map(lambda x: x.upper(), df['sequences'])
+    df.sequences = df['sequences'].map(lambda x: x.upper())
     
     # Check sequences are all from DNA, not RNA
     df.sequences = df.sequences.replace("U", "T", regex=True) 
@@ -171,7 +166,7 @@ def Find_panhandles(path_to_intervals, energy_threshold, handle_length_threshold
         df = df.loc[df.wrong_symbol != True]
 
     # Index sequences
-    df["sequences_indxd"] = df['sequences'].apply(lambda x: Index_seq(x, k))
+    df["sequences_indxd"] = df['sequences'].apply(lambda x: Index_seq(x.encode('ascii'), k))
     df = df.loc[df.sequences_indxd != False]
     
     # Look for phs in parallel threads
@@ -264,8 +259,8 @@ def MakePretty(path_to_ph, annotation_file, RNA_RNA_interaction):
 
             df = df.loc[~((df.panhandle_left_hand > df.panhandle_right_hand) & (df.panhandle_start < df.panhandle_end))]
 
-            x = df.loc[df.panhandle_start > df.panhandle_end]
-            y = df.loc[~(df.panhandle_start > df.panhandle_end)]
+            x = df.loc[df.panhandle_start > df.panhandle_end].copy()
+            y = df.loc[~(df.panhandle_start > df.panhandle_end)].copy()
             if x.shape[0] != 0:
                 x['al1'] = x[['alignment2']]
                 x['alignment2'] = x[['alignment1']]
@@ -277,7 +272,7 @@ def MakePretty(path_to_ph, annotation_file, RNA_RNA_interaction):
                 x['panhandle_start'] = x[['panhandle_right_hand']]
                 x['panhandle_right_hand'] = x[['st']]
                 x.drop(['al1', 'lh', 'st'], inplace = True, axis = 1)
-                df = y.append(x)
+                df = pd.concat([y, x])
 
         else:
             # + strand
@@ -309,7 +304,7 @@ def MakePretty(path_to_ph, annotation_file, RNA_RNA_interaction):
         # Add gene ids and names from annotation
         if ((annotation_file != '') & ('start_gene' in list(df.columns.values))):
             print('Adding gene ids and names from annotation..')
-            cmd = 'awk -F"\t" \'{ if ($3 == "gene") { print } }\' ' + annotation_file
+            cmd = 'zcat ' + annotation_file + ' | awk -F"\t" \'{ if ($3 == "gene") { print } }\' '
             a = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
             if sys.version_info[0] < 3: 
                 from StringIO import StringIO
@@ -318,10 +313,10 @@ def MakePretty(path_to_ph, annotation_file, RNA_RNA_interaction):
             b = StringIO(a.communicate()[0].decode('utf-8'))
             anno = pd.read_csv(b, sep="\t", header=None)
             anno[["gene_id", "gene_name"]] = anno[8].str.split(';', expand=True)[[0,4]]
-            anno.gene_id.replace("gene_id", "", regex=True, inplace=True)
-            anno.gene_id.replace("\"", "", regex=True, inplace=True)
-            anno.gene_name.replace("gene_name", "", regex=True, inplace=True)
-            anno.gene_name.replace("\"", "", regex=True, inplace=True)
+            anno['gene_id'] = anno['gene_id'].replace("gene_id", "", regex=True)
+            anno['gene_id'] = anno['gene_id'].replace("\"", "", regex=True)
+            anno['gene_name'] = anno['gene_name'].replace("gene_name", "", regex=True)
+            anno['gene_name'] = anno['gene_name'].replace("\"", "", regex=True)
 
             anno = anno[[0,3,4,6,'gene_id','gene_name']]
             anno.columns = ['chr', 'start_gene', 'end_gene', 'strand','gene_id', 'gene_name']
