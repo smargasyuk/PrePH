@@ -5,6 +5,7 @@ configfile: "config/config.yaml"
 PREFIX = config["root_dir"]
 GTF_NAME = Path(config["genome_annotation"]).with_suffix('').stem
 print(GTF_NAME)
+print(workflow.basedir)
 
 localrules: merge_excluded_regions, merge_conserved_intervals, ph_to_bed12, getChromSizes, bedToBigBed
 
@@ -16,6 +17,14 @@ rule all:
 rule ph_bb:
     input: PREFIX + "/output/panhandles.bb"
 
+
+rule calculate_stacking_energies:
+    output:
+        workflow.basedir + "/scripts/PrePH/data/{k,\d}{g,\d}mers_stacking_energy_binary.npy"
+    conda: "envs/py2preph.yaml"
+    shell: """
+python workflow/scripts/PrePH/src/PrecalculateStackingEnergeis.py -k {wildcards.k} -g {wildcards.g}    
+"""
 
 rule merge_excluded_region_files:
     input: config["excluded_regions"]
@@ -150,6 +159,7 @@ rule find_panhandles:
         intervals_df = PREFIX + "/data/conin_python_long_filtered_final.tsv",
         genome_fa = config["genome_fa"],
         genome_annotation_gtf = config["genome_annotation"],
+        stacking_energies = workflow.basedir + "/scripts/PrePH/data/" + str(config["preph_params"]["k"]) + str(config["preph_params"]["gt_amount_in_kmer_max"]) + "mers_stacking_energy_binary.npy"
     output:
         ph_table = PREFIX + "/output/panhandles_preprocessed.tsv"
     conda: "envs/py3preph.yaml"
@@ -158,8 +168,13 @@ rule find_panhandles:
         mem_mb=lambda wildcards, threads: threads * 8000,
         runtime=600,
         time_min=600
+    params:
+        k = config["preph_params"]["k"],
+        gt_amount_in_kmer_max = config["preph_params"]["gt_amount_in_kmer_max"],
+        handle_len_min=config["preph_params"]["handle_len_min"],
+        energy_max=config["preph_params"]["energy_max"]
     shell: """
-python workflow/scripts/PrePH/src/FindPanhandles.py -i {input.intervals_df} -g {input.genome_fa} -n {input.genome_annotation_gtf} -o $(dirname {output.ph_table}) -t {threads}
+python workflow/scripts/PrePH/src/FindPanhandles.py -i {input.intervals_df} -g {input.genome_fa} -n {input.genome_annotation_gtf} -o $(dirname {output.ph_table}) -t {threads} -k {params.k} -d {params.gt_amount_in_kmer_max} -a {params.handle_len_min} -e {params.energy_max}
 """
 
 
