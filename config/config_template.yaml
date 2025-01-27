@@ -1,0 +1,12 @@
+root_dir: "/absolute/path/to/prefix"
+genome_fa: "/absolute/path/to/genome.fa"
+genome_annotation: "/absolute/path/to/annotation.gtf.gz"
+conserved_regions: "/path/to/ucsc_conserved_regions.txt.gz"
+excluded_regions:
+  - "/path/to/repeats1.bed.gz"
+  - "/path/to/repeats2.bed.gz"
+preph_params:
+  k: 5
+  gt_amount_in_kmer_max: 2
+  handle_len_min: 10
+  energy_max: -15
