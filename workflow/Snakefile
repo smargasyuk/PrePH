@@ -8,8 +8,13 @@ print(GTF_NAME)
 
 localrules: merge_excluded_regions, merge_conserved_intervals, ph_to_bed12, getChromSizes, bedToBigBed
 
+
 rule all:
     input: PREFIX + "/output/panhandles_preprocessed.tsv"
+
+
+rule ph_bb:
+    input: PREFIX + "/output/panhandles.bb"
 
 
 rule merge_excluded_region_files:
@@ -58,6 +63,7 @@ python -m workflow.scripts.misc.parse_annotation_to_parquet \
     --output {output.pq} 
 """
 
+
 rule select_genes_and_exons:
     input:
         pq = PREFIX + "/data/" + GTF_NAME + ".pq"
@@ -76,6 +82,7 @@ python -m workflow.scripts.misc.get_genes \
     --input {input.pq} \
     --output-dir $(dirname {output.genes_bed})
 """
+
 
 rule get_intervals:
     input:
@@ -119,6 +126,7 @@ awk -v OFS="\t" '$3 - $2 + 1 >= {params.handle_len_min}' > {output.conin_filtere
 echo "filtered"
 """ 
 
+
 rule build_ci_table:
     input:
         ci_bed = PREFIX + "/data/conin_python_long_sorted_filtered.bed",
@@ -154,6 +162,7 @@ rule find_panhandles:
 python workflow/scripts/PrePH/src/FindPanhandles.py -i {input.intervals_df} -g {input.genome_fa} -n {input.genome_annotation_gtf} -o $(dirname {output.ph_table}) -t {threads}
 """
 
+
 rule ph_to_bed12:
     input:
         ph_table = PREFIX + "/output/panhandles_preprocessed.tsv",
@@ -168,6 +177,7 @@ rule ph_to_bed12:
 python workflow/scripts/misc/ph_to_bed.py --input {input.ph_table} --output {output.ph_bed12}
 """
 
+
 rule getChromSizes:
     output: PREFIX + "/data/{genome}.chromSizes"
     conda: "envs/kent.yaml"
@@ -178,6 +188,7 @@ rule getChromSizes:
     shell: """
 fetchChromSizes {wildcards.genome} > {output}
 """
+
 
 rule bedToBigBed:
     input:
