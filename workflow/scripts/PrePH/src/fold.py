@@ -10,18 +10,20 @@ import binascii, itertools, sys, getopt, os
 from functools import partial
 from sys import getsizeof
 inf = float('inf')
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
-
+# os.chdir(os.path.dirname(os.path.abspath(__file__)))
+from pathlib import Path
 
 # Dictionary for nts (used in 1x1, 2x1, 2x2 loops in last 2 dims)
 Dic_nt = {b'@': 0, b'A': 1, b'C': 2, b'G': 3, b'T': 4}
 # Dictionary of basepairs (used in 1x1, 2x1, 2x2 loops in first 2 dims)
 Dic_bp = {b'CG': 0, b'GC': 1, b'GT': 2, b'TG': 3, b'AT': 4, b'TA': 5}
-stacking_matrix = load("../lib//stacking_matrix.npy")
-bulge_list = load("../lib/bulge_list.npy")
-intl11_matrix = load("../lib/intl11_matrix.npy")
-intl12_matrix = load("../lib/intl12_matrix.npy")
-intl22_matrix = load("../lib/intl22_matrix.npy")
+
+SCRIPT_PARENT_FOLDER = Path(__file__).resolve().parent
+stacking_matrix = load(SCRIPT_PARENT_FOLDER / "../lib/stacking_matrix.npy")
+bulge_list = load(SCRIPT_PARENT_FOLDER / "../lib/bulge_list.npy")
+intl11_matrix = load(SCRIPT_PARENT_FOLDER / "../lib/intl11_matrix.npy")
+intl12_matrix = load(SCRIPT_PARENT_FOLDER / "../lib/intl12_matrix.npy")
+intl22_matrix = load(SCRIPT_PARENT_FOLDER / "../lib/intl22_matrix.npy")
 
 
 # Adding for long bulges
@@ -412,7 +414,7 @@ def main(argv):
     elif need_suboptimal == 'True':
         need_suboptimal = True
 
-    kmers_stacking_matrix = load("../data/" + str(k) + str(GT_threshold) + "mers_stacking_energy_binary.npy")
+    kmers_stacking_matrix = load(SCRIPT_PARENT_FOLDER / ("../data/" + str(k) + str(GT_threshold) + "mers_stacking_energy_binary.npy"))
     seq_indxd = Index_seq(seq.encode("ascii"), k)
     seq_compl_indxd = Index_seq(seq_compl.encode("ascii"), k)
     res = FindMinEnLocAlkmer(seq.encode("ascii"), seq_compl.encode("ascii"), seq_indxd, seq_compl_indxd, k, energy_threshold, handle_length_threshold, need_suboptimal, kmers_stacking_matrix)

@@ -3,13 +3,13 @@ from numpy import argmin, unravel_index, full, empty, load, set_printoptions, ar
 from math import ceil
 import re, sys, getopt, itertools, binascii, time, subprocess, os
 from functools import partial
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append('../../tools/')
+# os.chdir(os.path.dirname(os.path.abspath(__file__)))
+# sys.path.append('../../tools/')
 from pyfaidx import Fasta
 import pandas as pd
 import multiprocessing as mp
 from Bio.Seq import Seq
-sys.path.insert(0, './')
+# sys.path.insert(0, './')
 from fold import * 
 
 
@@ -151,7 +151,7 @@ def Find_panhandles(path_to_intervals, energy_threshold, handle_length_threshold
         if strandness:
             print("Making reverse complement of minus strand..")
             df.loc[:, 'sequences'] = df.apply(MakeComplement, axis=1) 
-        df.to_csv("../data/intervals_with_seqs.tsv", sep='\t', index=False)
+        df.to_csv(path_to_ph + "/intervals_with_seqs.tsv", sep='\t', index=False)
     
     # Check sequences are all upper case    
     df.sequences = df['sequences'].map(lambda x: x.upper())
@@ -421,7 +421,8 @@ def main(argv):
     elif strandness == 'True':
         strandness = True
 
-    kmers_stacking_matrix = load("../data/" + str(k) + str(GT_threshold) + "mers_stacking_energy_binary.npy")
+    SCRIPT_PARENT_FOLDER = Path(__file__).resolve().parent
+    kmers_stacking_matrix = load(SCRIPT_PARENT_FOLDER / ("../data/" + str(k) + str(GT_threshold) + "mers_stacking_energy_binary.npy"))
 
     Find_panhandles(path_to_intervals, energy_threshold, handle_length_threshold,
                     panhandle_length_threshold, k,
