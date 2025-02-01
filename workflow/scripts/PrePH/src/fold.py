@@ -74,9 +74,10 @@ def Initiate_with_kmers(seq, seq_compl, seq_indxd_tmp, seq_compl_indxd_tmp, kmer
     seq_compl = b'$' * (k + 2) + seq_compl  # (vertically) |
     seq_compl_length = len(seq_compl)
     D = full((len(seq_compl), len(seq)), inf)  # distance matrix
-    zero_coords = empty((), dtype=object)
-    zero_coords[()] = (0, 0)
-    B = full((len(seq_compl), len(seq)), zero_coords, dtype=object)  # backtracker matrix
+    # zero_coords = empty((), dtype=object)
+    # zero_coords[()] = (0, 0)
+    # B = full((len(seq_compl), len(seq)), zero_coords, dtype=object)  # backtracker matrix
+    B = np.zeros((len(seq_compl), len(seq), 2), 'i')
     S = empty([len(seq_compl), len(seq)],
                 dtype="S" + str(len(seq) + len(seq_compl)))  # dot bracket structure matrix
     for I, kmer_i in enumerate(seq_compl_indxd_tmp):
@@ -132,6 +133,26 @@ def Check_ranges_overlap(x1, x2, y1, y2):
     return (((x1 < y2) & (y1 < x2)))
 
 
+# @dataclass
+# class PrephState:
+#     D: np.ndarray
+#     B: np.ndarray
+#     S: np.ndarray
+#     min_energy: float
+#     end_pos_i: int
+#     end_pos_j: int
+#     start_pos_i: int 
+#     start_pos_j: int 
+#     seq_indxd_tmp: np.ndarray
+#     seq_compl_indxd_tmp: np.ndarray
+#     seq: bytes
+#     seq_compl: bytes
+#     i: int
+#     j: int
+#     I: int
+#     J: int
+
+
 # segment1[start[i,j],end[i,j]], segment2 - part of the square [start[i,j],end[i,j]]
 def Check_segments_intersection(segment1, segment2, slope):
     a1 = float(-segment1[0][0] + segment1[1][0]) / (segment1[0][1] - segment1[1][1])
@@ -155,6 +176,51 @@ def Check_segments_intersection(segment1, segment2, slope):
         return (segment2[0][0], int(intersection_j))
     else:
         return (False)
+
+
+@dataclass
+class PrephMatrices:
+    D: np.ndarray
+    B: np.ndarray
+    S: np.ndarray
+    S_head: bytes
+    S_tail: bytes
+
+
+@dataclass
+class PrephPointer:
+    i: int
+    j: int
+
+
+@dataclass
+class PrephState:
+    matrices: PrephMatrices
+    pointer: PrephPointer
+
+
+
+class UpdateVariant:
+    def next_pointer(self, pointer: PrephPointer) -> PrephPointer:
+        pass
+
+    def new_energy(self, state: PrephState) -> float:
+        pass
+
+    def new_structure(self, state: PrephState) -> bytes:
+        pass
+
+    def update_state(self, state: PrephState) -> PrephState:
+        new_en = self.new_energy(state)
+        next_pointer = self.next_pointer(state.pointer)
+        
+        argmin_ = argmin([0, state.matrices.D[next_pointer.i][next_pointer.j], new_en])
+        state.matrices.B[next_pointer.i][next_pointer.j] = Backtrack(argmin_, state.matrices.B[next_pointer.i][next_pointer.j], state.matrices.B[state.pointer.i][state.pointer.j])
+        state.matrices.D[next_pointer.i][next_pointer.j] = [0, state.matrices.D[next_pointer.i][next_pointer.j], new_en][argmin_]
+        state.matrices.S[next_pointer.i][next_pointer.j] = [b'*', state.matrices.S[next_pointer.i][next_pointer.j], state.S_head + self.new_structure(state) + state.S_tail][argmin_]
+
+        return state
+
 
 
 def updateStep(D, B, S, min_energy, end_pos_i, end_pos_j, start_pos_i, start_pos_j, seq_indxd_tmp, seq_compl_indxd_tmp, seq, seq_compl, kmers_stacking_matrix, k, i, j, I, J):
