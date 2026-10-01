@@ -6,6 +6,7 @@ from pyfaidx import Fasta
 
 
 def GetSequencesForDF(genome, row):
+    # assumes 1-based, inclusive coordinates in the df
     row_seq = (str(genome[row['chrom']][row['chromStart'] - 1:row['chromEnd']]).upper())
     if row['strand'] == '+':
         return row_seq

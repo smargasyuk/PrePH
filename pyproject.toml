@@ -1,0 +1,38 @@
+[project]
+name = "preph"
+version = "0.1.0"
+description = "Identifies long, near-perfect complementary regions in RNA sequences."
+readme = "README.md"
+authors = [
+    { name = "Svetlana Kalmykova"},
+    { name = "Sergey Margasyuk"}
+]
+requires-python = ">=3.13"
+dependencies = [
+    "biopython>=1.88",
+    "click>=8.5.0",
+    "numpy>=2.5.3",
+    "pandas>=3.0.6",
+    "polars>=1.44.2",
+    "pyfaidx>=0.9.0.4",
+    "tqdm>=4.70.1",
+]
+
+[project.scripts]
+preph-precalculate-energies = "preph.precalculate_stacking_energies:main"
+preph-fold-raw = "preph.fold:main_endpoint"
+preph-genomic-fold = "preph.find_panhandles_grouped:main"
+preph-genomic-normalize = "preph.make_pretty:main"
+preph-genomic-to-bed = "preph.ph_to_bed:main"
+
+[build-system]
+requires = ["uv_build>=0.12.17,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "black>=26.5.1",
+    "pytest>=9.1.1",
+    "pytest-benchmark>=5.3.0",
+    "ruff>=0.16.9",
+]
