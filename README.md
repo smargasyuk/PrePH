@@ -134,6 +134,8 @@ Structures with absolute genomic coordinates. Duplicated and non-collinear struc
 
 ## 3. Build genomic BED for visualization
 
+Run `preph-genomic-to-bed --input <preph_normalized_df> --output <preph_bed_df>`
+
 ### Input
 
 Structures with absolute genomic coordinates from `preph-genomic-normalize`.
